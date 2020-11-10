@@ -1,10 +1,10 @@
 import { FC } from 'react';
 
-import { AppShell } from '~/components/';
+import { AppShell, IntroHero } from '~/components/';
 
 const IndexPage: FC = () => (
   <AppShell>
-    <p>Home content</p>
+    <IntroHero />
   </AppShell>
 );
 

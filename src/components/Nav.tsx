@@ -1,7 +1,7 @@
 import { FC } from 'react';
 
 const NavItem = ({ text, link }: { text: string; link: string }) => (
-  <li className="text-white text-2xl font-bold mx-4">
+  <li className="text-white text-2xl font-bold mx-4 hover:text-orange-500 transition duration-150 ease-in-out">
     <a href={link}>{text}</a>
   </li>
 );
