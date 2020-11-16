@@ -1,8 +1,11 @@
 import { FC } from 'react';
+import Link from 'next/link';
 
 const NavItem = ({ text, link }: { text: string; link: string }) => (
   <li className="text-white text-2xl font-bold mx-4 hover:text-orange-500 transition duration-150 ease-in-out">
-    <a href={link}>{text}</a>
+    <Link href={link} passHref>
+      <a>{text}</a>
+    </Link>
   </li>
 );
 

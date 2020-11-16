@@ -1,10 +1,17 @@
 import { FC } from 'react';
 
-import { AppShell } from '~/components/';
+import { AppShell, Container, Post } from '~/components/';
+
+import { posts } from '~/getPosts';
 
 const Blog: FC = () => (
   <AppShell>
-    <p>Blog content</p>
+    <Container>
+      <p>Blog content</p>
+      {posts.map((post) => (
+        <Post key={post.link} post={post} />
+      ))}
+    </Container>
   </AppShell>
 );
 
