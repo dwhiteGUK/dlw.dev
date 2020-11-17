@@ -1,11 +1,13 @@
 import { FC } from 'react';
 
-import { AppShell } from '~/components/';
+import { AppShell, Container, Heading1 } from '~/components/';
 
-const work: FC = () => (
+const Blog: FC = () => (
   <AppShell>
-    <p>Work content</p>
+    <Container>
+      <Heading1 heading="Work" />
+    </Container>
   </AppShell>
 );
 
-export default work;
+export default Blog;

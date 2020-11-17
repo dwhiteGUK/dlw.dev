@@ -10,5 +10,6 @@ export { default as MoreLink } from './MoreLink';
 export { default as Nav } from './Nav';
 export { default as Post } from './Post';
 
+export * from './Typography';
 export * from './icons';
 export * from './logos';

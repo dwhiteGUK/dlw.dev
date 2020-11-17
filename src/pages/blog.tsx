@@ -1,13 +1,13 @@
 import { FC } from 'react';
 
-import { AppShell, Container, Post } from '~/components/';
+import { AppShell, Container, Heading1, Post } from '~/components/';
 
 import { posts } from '~/getPosts';
 
 const Blog: FC = () => (
   <AppShell>
     <Container>
-      <p>Blog content</p>
+      <Heading1 heading="Blog" />
       {posts.map((post) => (
         <Post key={post.link} post={post} />
       ))}
