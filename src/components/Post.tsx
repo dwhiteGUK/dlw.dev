@@ -6,11 +6,11 @@ import { ArrowNarrowRightIcon, HeadPost } from '~/components';
 type Post = {
   link: string;
   module: {
-    meta: unknown;
-  };
+    meta;
+  }
 };
 
-const Post: FC = ({ post }: { post: Post }) => {
+const Post: FC = ({ post } : { post: Post}) => {
   const {
     link,
     module: { meta },
