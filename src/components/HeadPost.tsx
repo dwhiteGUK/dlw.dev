@@ -1,6 +1,6 @@
 type Meta = {
   title: string;
-  description: string;
+  snippet: string;
   date: string;
   readTime: number;
 };
@@ -9,7 +9,7 @@ const HeadPost = ({ meta, isBlogPost } : { meta: Meta, isBlogPost: boolean }) =>
   <>
     <h1 className={isBlogPost ? 'great-title' : null}>{meta.title}</h1>
     <div className="details">
-      {isBlogPost ? null : <p>{meta.description}</p>}
+      {isBlogPost ? null : <p>{meta.snippet}</p>}
       <span>{meta.date}</span>
       <span role="img" aria-label="one coffee">
         ☕ {meta.readTime + ' min read'}
