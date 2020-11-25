@@ -3,9 +3,27 @@ module.exports = {
   purge: {
     content: ['./pages/**/*.tsx'],
   },
-  theme: {},
+  theme: {
+    extend: {
+      typography: {
+        DEFAULT: {
+          css: {
+            h1: {
+              color: '#fff',
+            },
+            h2: {
+              color: '#fff',
+            },
+            p: {
+              color: '#fff',
+            },
+          },
+        },
+      },
+    },
+  },
   variants: {},
-  plugins: [require('@tailwindcss/ui')],
+  plugins: [require('@tailwindcss/ui'), require('@tailwindcss/typography')],
   future: {
     purgeLayersByDefault: true,
   },

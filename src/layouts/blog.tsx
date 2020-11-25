@@ -20,7 +20,7 @@ const BlogDetails: FC = ({
     <AppShell>
       <NextSeo title={`${title} | dlw`} description={snippet} />
       <Container>
-        <article>{children}</article>
+        <article className="prose">{children}</article>
       </Container>
     </AppShell>
   );
