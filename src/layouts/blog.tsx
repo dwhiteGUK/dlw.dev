@@ -1,12 +1,16 @@
 import { FC } from 'react';
 
 import { NextSeo } from 'next-seo';
-
-import { AppShell, Container } from '~/components';
+import { MDXProvider } from '@mdx-js/react';
+import { AppShell, Container, Heading1 } from '~/components';
 
 type FrontMatter = {
   title: string;
   snippet: string;
+};
+
+const mdxComponents = {
+  h1: Heading1,
 };
 
 const BlogDetails: FC = ({
@@ -20,7 +24,9 @@ const BlogDetails: FC = ({
     <AppShell>
       <NextSeo title={`${title} | dlw`} description={snippet} />
       <Container>
-        <article className="prose">{children}</article>
+        <MDXProvider components={mdxComponents}>
+          <article className="prose">{children}</article>
+        </MDXProvider>
       </Container>
     </AppShell>
   );
