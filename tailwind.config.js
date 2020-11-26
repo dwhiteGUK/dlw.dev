@@ -13,12 +13,18 @@ module.exports = {
             h1: {
               color: theme('colors.gray.900'),
             },
+            h2: {
+              color: theme('colors.gray.900'),
+            },
           },
         },
         dark: {
           css: {
             color: theme('colors.gray.50'),
             h1: {
+              color: theme('colors.gray.50'),
+            },
+            h2: {
               color: theme('colors.gray.50'),
             },
           },

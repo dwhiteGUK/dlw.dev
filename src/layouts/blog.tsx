@@ -3,7 +3,7 @@ import { FC } from 'react';
 import { NextSeo } from 'next-seo';
 import { MDXProvider } from '@mdx-js/react';
 import useDarkMode from 'use-dark-mode';
-import { AppShell, Container, Heading1, Paragraph } from '~/components';
+import { AppShell, Container, Heading1, Heading2, Paragraph } from '~/components';
 
 type FrontMatter = {
   title: string;
@@ -12,6 +12,7 @@ type FrontMatter = {
 
 const mdxComponents = {
   h1: Heading1,
+  h2: Heading2,
   p: Paragraph,
 };
 
