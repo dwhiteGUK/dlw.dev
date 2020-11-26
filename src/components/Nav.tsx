@@ -12,7 +12,7 @@ const NavItem = ({ text, link }: { text: string; link: string }) => (
 );
 
 const Nav: FC = () => (
-  <nav>
+  <nav className="flex items-center">
     <ul className="ml-6 flex flex-col lg:flex-row justify-between items-end lg:items-center">
       <NavItem text="Home" link="/" />
       <NavItem text="Work" link="/work" />
