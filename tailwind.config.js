@@ -3,23 +3,27 @@ module.exports = {
   purge: {
     content: ['./pages/**/*.tsx'],
   },
+  darkMode: 'class',
   theme: {
     extend: {
-      typography: {
+      typography: (theme) => ({
         DEFAULT: {
           css: {
+            color: theme('colors.gray.900'),
             h1: {
-              color: '#fff',
-            },
-            h2: {
-              color: '#fff',
-            },
-            p: {
-              color: '#fff',
+              color: theme('colors.gray.900'),
             },
           },
         },
-      },
+        dark: {
+          css: {
+            color: theme('colors.gray.50'),
+            h1: {
+              color: theme('colors.gray.50'),
+            },
+          },
+        },
+      }),
     },
   },
   variants: {},
