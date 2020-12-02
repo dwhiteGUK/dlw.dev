@@ -1,7 +1,7 @@
 module.exports = {
   important: true,
   purge: {
-    content: ['./pages/**/*.tsx'],
+    content: ['./src/**/*.ts', './src/**/*.tsx'],
   },
   darkMode: 'class',
   theme: {
