@@ -1,10 +1,16 @@
+const colors = require('tailwindcss/colors')
+
 module.exports = {
-  important: true,
   purge: {
     content: ['./src/**/*.ts', './src/**/*.tsx'],
   },
   darkMode: 'class',
   theme: {
+    colors: {
+      orange: colors.orange,
+      gray: colors.gray,
+      white: colors.white,
+    },
     extend: {
       typography: (theme) => ({
         DEFAULT: {
@@ -33,7 +39,7 @@ module.exports = {
     },
   },
   variants: {},
-  plugins: [require('@tailwindcss/ui'), require('@tailwindcss/typography')],
+  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography'), require('@tailwindcss/aspect-ratio')],
   future: {
     purgeLayersByDefault: true,
   },
