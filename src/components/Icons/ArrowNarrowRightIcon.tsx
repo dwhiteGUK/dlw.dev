@@ -1,4 +1,6 @@
-const ArrowNarrowRightIcon = (props) => (
+import { FC } from 'react';
+
+const ArrowNarrowRightIcon: FC = (props) => (
   <svg {...props} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
     <path
       fillRule="evenodd"
