@@ -11,6 +11,6 @@ export { default as MoreLink } from './MoreLink';
 export { default as Nav } from './Nav';
 
 export * from './blog';
-export * from './icons';
+export * from './icons/index.ts';
 export * from './logos';
 export * from './Typography';
