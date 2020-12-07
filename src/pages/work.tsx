@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import Image from 'next/image';
 
-import { Ahref, AppShell, Container, Heading1, Heading3, Paragraph } from '~/components/';
+import { Ahref, AppShell, Container, Heading1, Heading3, Paragraph } from '~/components';
 
 const Work: FC = () => (
   <AppShell>

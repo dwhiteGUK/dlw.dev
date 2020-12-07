@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { AppShell, Container, IntroHero, BlogHero, Footer } from '~/components/';
+import { AppShell, Container, IntroHero, BlogHero, Footer } from '~/components';
 
 const IndexPage: FC = () => (
   <AppShell>

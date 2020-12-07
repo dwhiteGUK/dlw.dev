@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { AppShell, BlogItem, Container, Heading1 } from '~/components/';
+import { AppShell, BlogItem, Container, Heading1 } from '~/components';
 
 import { posts } from '~/getPosts';
 
