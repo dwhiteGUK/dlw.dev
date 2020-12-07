@@ -10,7 +10,7 @@ export { default as IntroHero } from './IntroHero';
 export { default as MoreLink } from './MoreLink';
 export { default as Nav } from './Nav';
 
-export * from './blog';
-export * from './icons';
-export * from './logos';
-export * from './Typography';
+// export * from './blog';
+// export * from './icons';
+// export * from './logos';
+// export * from './Typography';
