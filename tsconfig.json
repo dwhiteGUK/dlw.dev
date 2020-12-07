@@ -4,7 +4,6 @@
     "paths": {
       "~/components": ["./src/components/index.ts"],
       "~/hooks": ["./src/hooks/index.ts"],
-      "~/icons": ["./src/icons/index.ts"],
       "~/getPosts": ["./src/getPosts.ts"],
     },
     "target": "es5",
