@@ -7,9 +7,10 @@ module.exports = {
   darkMode: 'class',
   theme: {
     colors: {
+      black: colors.black,
+      white: colors.white,
       orange: colors.orange,
       gray: colors.gray,
-      white: colors.white,
       lightBlue: colors.lightBlue,
       cyan: colors.cyan,
     },
@@ -24,6 +25,13 @@ module.exports = {
             h2: {
               color: theme('colors.gray.900'),
             },
+            a: {
+              color: theme('colors.orange.500'),
+              '&:hover': {
+                color: theme('colors.white'),
+                background: theme('colors.black'),
+              },
+            },
           },
         },
         dark: {
@@ -34,6 +42,13 @@ module.exports = {
             },
             h2: {
               color: theme('colors.gray.50'),
+            },
+            a: {
+              color: theme('colors.orange.500'),
+              '&:hover': {
+                color: theme('colors.black'),
+                background: theme('colors.white'),
+              },
             },
           },
         },
