@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-const ArrowNarrowRightIcon: FC = (props) => (
+const ArrowRightIcon: FC = (props) => (
   <svg {...props} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
     <path
       fillRule="evenodd"
@@ -10,4 +10,4 @@ const ArrowNarrowRightIcon: FC = (props) => (
   </svg>
 );
 
-export default ArrowNarrowRightIcon;
+export default ArrowRightIcon;

@@ -11,7 +11,7 @@ export { default as MoreLink } from './MoreLink';
 export { default as Nav } from './Nav';
 
 export * from './blog';
-export { default as ArrowNarrowRightIcon } from './icons/ArrowNarrowRightIcon';
+export { default as ArrowRightIcon } from './icons/ArrowRightIcon';
 export { default as ExternalLinkIcon } from './icons/ExternalLinkIcon';
 export { default as LightbulbIcon } from './icons/LightbulbIcon';
 export { default as MoonIcon } from './icons/MoonIcon';
