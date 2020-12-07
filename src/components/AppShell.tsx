@@ -2,7 +2,7 @@ import { FC } from 'react';
 import Head from 'next/head';
 import useDarkMode from 'use-dark-mode';
 
-import { Header } from '~/components/';
+import { Header } from '~/components';
 
 const AppShell: FC = ({
   children,
