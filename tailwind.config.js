@@ -10,6 +10,8 @@ module.exports = {
       orange: colors.orange,
       gray: colors.gray,
       white: colors.white,
+      lightBlue: colors.lightBlue,
+      cyan: colors.cyan,
     },
     extend: {
       typography: (theme) => ({
