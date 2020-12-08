@@ -59,5 +59,6 @@ export const useRelativeTime = (createdAt) => {
     style: 'long',
   });
 
+  // @ts-ignore
   return rtf.format(value, format);
-}
+};
