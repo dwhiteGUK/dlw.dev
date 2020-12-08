@@ -13,4 +13,4 @@ export { default as Nav } from './Nav';
 export * from './blog';
 export * from './icons';
 export * from './logos';
-export * from './Typography';
+export * from './typography';
