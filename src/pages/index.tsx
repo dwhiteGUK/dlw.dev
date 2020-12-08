@@ -1,11 +1,19 @@
-import { AppShell } from '~/components';
+import { FC } from 'react';
 
-function IndexPage() {
-  return (
-    <AppShell>
-      <div>Home</div>;
-    </AppShell>
-  );
-}
+import { AppShell, Container, IntroHero, BlogHero, Footer } from '~/components';
+
+const IndexPage: FC = () => (
+  <AppShell>
+    <Container>
+      <IntroHero />
+    </Container>
+    <Container bg>
+      <BlogHero />
+    </Container>
+    <Container>
+      <Footer />
+    </Container>
+  </AppShell>
+);
 
 export default IndexPage;
