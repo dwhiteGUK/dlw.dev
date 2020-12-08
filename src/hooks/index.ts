@@ -1,1 +1,0 @@
-export { useRelativeTime } from './useRelativeTime';
