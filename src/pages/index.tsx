@@ -1,5 +1,11 @@
+import { AppShell } from '~/components';
+
 function IndexPage() {
-  return <div>Home</div>;
+  return (
+    <AppShell>
+      <div>Home</div>;
+    </AppShell>
+  );
 }
 
 export default IndexPage;
