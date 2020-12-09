@@ -14,9 +14,9 @@ const IntroHero: FC = () => (
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Et, egestas tempus tellus etiam sed. Quam a scelerisque
         amet ullamcorper eu enim et fermentum, augue. Aliquet amet volutpat quisque ut interdum tincidunt duis.
       </p>
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <MoreLink text="My Story" to="/about" />
-      </div>
+      </div> */}
     </div>
   </div>
 );
