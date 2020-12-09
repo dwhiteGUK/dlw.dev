@@ -13,7 +13,7 @@ const AppShell: FC = ({
   pageTitle: string;
   snippet: string;
 }) => {
-  const darkMode = useDarkMode(false);
+  const darkMode = useDarkMode(true);
 
   return (
     <div className={`${darkMode.value ? 'dark' : ''}`}>
