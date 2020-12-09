@@ -1,6 +1,8 @@
+import { FC } from 'react';
+
 import { Nav } from '~/components';
 
-const Header =  ({ toggleDarkMode }: DarkMode) => {
+const Header: FC = () => {
   return (
     <header>
       <div className="flex justify-between">
@@ -9,7 +11,7 @@ const Header =  ({ toggleDarkMode }: DarkMode) => {
             dlw
           </div>
         </div>
-        <Nav toggleDarkMode={toggleDarkMode} />
+        <Nav />
       </div>
     </header>
   );

@@ -1,7 +1,8 @@
+import useDarkMode from 'use-dark-mode';
 import { LightbulbIcon, MoonIcon } from '~/components';
 
-const DarkModeToggle = ({ toggleDarkMode }: DarkMode) => {
-  const { toggle, value } = toggleDarkMode;
+const DarkModeToggle = () => {
+  const { toggle, value } = useDarkMode();
 
   return (
     <button

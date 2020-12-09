@@ -1,3 +1,4 @@
+import { FC } from 'react';
 import Link from 'next/link';
 
 import { DarkModeToggle } from '~/components';
@@ -10,14 +11,14 @@ const NavItem = ({ text, link }: { text: string; link: string }) => (
   </li>
 );
 
-const Nav = ({ toggleDarkMode }: DarkMode) => (
+const Nav: FC = () => (
   <nav className="flex items-center">
     <ul className="ml-6 flex flex-col lg:flex-row justify-between items-end lg:items-center">
       <NavItem text="Home" link="/" />
       {/* <NavItem text="Work" link="/work" /> */}
       <NavItem text="Blog" link="/blog" />
       <li>
-        <DarkModeToggle toggleDarkMode={toggleDarkMode} />
+        <DarkModeToggle />
       </li>
     </ul>
   </nav>
