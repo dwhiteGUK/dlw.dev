@@ -2,10 +2,10 @@
 layout: blog
 title: Next.js and AWS image demo - Part 2
 timestamp: 1609442713000
-snippet: Using the Next.js image component
+snippet: Adding AWS services
 ---
 
-As this post is getting pretty long I'll now add a part 3 updating the website to use the AWS services setup here. On that note, if you haven't already read [part 1](https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-1) for the website set up as I will refer back to that post.
+As this post is getting pretty long I'll add a part 3 for updating the website to use the AWS services setup here. On that note, if you haven't already read [part 1](https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-1) for the website set up as I will refer back to that post.
 
 For the second part, I'll set up the required services in AWS.
 
@@ -15,7 +15,7 @@ For the second part, I'll set up the required services in AWS.
 
 For the API endpoint and bucket setup, I'll be using the [Serverless framework](https://www.serverless.com/).
 
-The services setup here could be used with any front end framework. I've just chosed to use React/Next.Js.
+The services setup here could be used with any front end framework. However, I've just chosen to use React/Next.Js.
 
 ## Serverless setup
 
@@ -154,11 +154,11 @@ And then install the plugins
 npm i serverless-bundle serverless-pseudo-parameters serverless-dotenv-plugin
 ```
 
-**serverless-bundle** allows me to write ES2015 (and newer) JS syntax, in particular module export/imports which are then bundled appropriately for AWS Lambda. **serverless-dotenv-plugin** allows us to pull in variables stored in a .env file which.
+**serverless-bundle** allows me to write ES2015 (and newer) JS syntax, in particular module export/imports which are then bundled appropriately for AWS Lambda. **serverless-dotenv-plugin** allows us to pull in variables stored in a .env file.
 
 ### Presigned URL
 
-In order to keep our bucket private, I am going to use a presigned URL. The presigned URL allows temporary public access to our object in the bucket. However I don't want anybody with the presigned URL to be able to access our objects, therefore, I'll add an API Key to secure the API endpoint. For this under custom add a dotenv property
+In order to keep our bucket private, I am going to use a presigned URL. The presigned URL allows temporary public access to our object (image) in the bucket. However I don't want anybody with the presigned URL to be able to access our objects, therefore, I'll add an API Key to secure the API endpoint. For this under custom add a dotenv property
 
 ```yaml
 custom:
@@ -194,7 +194,7 @@ functions:
           cors: true
 ```
 
-Our handler function will be called signedURL, we'll be using a get request to the path **signed-url** from the website. I specify CORs to allow [cross origin resource sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS), however as I'm using Next.js and will be using a getServerSideProps the request won't be coming from the client's browser, therefore, Cors isn't an issue. For client-side only websites, cors will be required.
+Our handler function will be called signedUrl, we'll be using a get request to the path **signed-url** from the website. I specify CORs to allow [cross origin resource sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS), however as I'm using Next.js and will be using a getServerSideProps the request won't be coming from the client's browser, therefore, CORs isn't an issue. For client-side only websites, CORs will be required.
 
 Now open handler.js and remove all the example code. Add an import to the AWS SDK
 
@@ -257,13 +257,13 @@ const presignedGetUrl = await s3.getSignedUrl('getObject', {
 
 In the options object, I pass in the name of the bucket, the image key and the length of time until the key expires - currently, I've set it to 5 minutes, however in a production application I'd reduce that significantly.
 
-Now we can re-deploy to AWS. A quick tip if you haven't updated the serverless.yml file you can add the -f flag to the command and the name of the function specified in the serverless.yml for a much quicker deployment
+Now we can re-deploy to AWS. A quick tip if you haven't updated the serverless.yml file you can add the -f flag to the command and the name of the function you specified in the serverless.yml for a much quicker deployment
 
 ```bash
 sls deploy -f signedUrl
 ```
 
-In a browser/Postman (or equivalent) you can do a GET request to the API gateway URL that calls our AWS Lambda adding the image key onto the end. For example [https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url?key=daniel-j-schwarz-REjuIrs2YaM-unsplash.jpg](https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url?key=daniel-j-schwarz-REjuIrs2YaM-unsplash.jpg). The responding URL can be copied and pasted in a browser to see the image.
+In a browser/Postman (or equivalent) you can do a GET request to the API gateway URL that calls our AWS Lambda adding the image key as a query variable onto the end. For example [https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url?key=daniel-j-schwarz-REjuIrs2YaM-unsplash.jpg](https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url?key=daniel-j-schwarz-REjuIrs2YaM-unsplash.jpg). The responding URL can be copied and pasted in a browser to see the image.
 
 If you're not sure of the URL then you can type **sls info** in the terminal to get your service informarion
 
@@ -284,7 +284,7 @@ layers:
   None
 ```
 
-The image key is one of the images, you uploaded in part 1. To confirm you can go to your bucket in Amazon S3 ([https://s3.console.aws.amazon.com/s3](https://s3.console.aws.amazon.com/s3)).
+The image key is one of the images, you uploaded in part 1. To confirm go to your bucket in Amazon S3 ([https://s3.console.aws.amazon.com/s3](https://s3.console.aws.amazon.com/s3)).
 
 ### Get All Images
 
@@ -326,7 +326,7 @@ export const images = async (event) => {
 };
 ```
 
-The S3 listObjectsV2 method requires a callback function therefore in the above I've called a separate function called getAll which returns a promise. If successful the handle returns a status code of 200 and stringifies the data.
+The S3 listObjectsV2 method requires a callback function therefore in the above I've created a separate function called getAll which returns a promise. If successful the handler returns a status code of 200 and stringifies the data.
 
 In a production app, we need to catch any errors and return the necessary HTTP status code and error.
 
