@@ -1,0 +1,415 @@
+---
+layout: blog
+title: Next.js and AWS image demo - Part 2
+timestamp: 1609442713000
+snippet: Using the Next.js image component
+---
+
+As this post is getting pretty long I'll now add a part 3 updating the website to use the AWS services setup here. On that note, if you haven't already read [part 1](https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-1) for the website set up as I will refer back to that post.
+
+For the second part, I'll set up the required services in AWS.
+
+- S3 Bucket for storing the images
+- Lambda function for retrieving the images
+- API Gateway endpoint (added automatically) to access the lambda function
+
+For the API endpoint and bucket setup, I'll be using the [Serverless framework](https://www.serverless.com/).
+
+The services setup here could be used with any front end framework. I've just chosed to use React/Next.Js.
+
+## Serverless setup
+
+First, add a server folder in the root of the project
+
+```bash
+mkdir server && cd server
+```
+
+Then run the serverless setup command
+
+```bash
+serverless
+```
+
+Serverless will guide you through the options
+
+```bash
+Serverless: No project detected. Do you want to create a new one? Yes
+Serverless: What do you want to make? AWS Node.js
+Serverless: What do you want to call this project? dlw-nextjs-image-demo
+
+Project successfully created in 'dlw-nextjs-image-demo' folder.
+
+You can monitor, troubleshoot, and test your new service with a free Serverless account.
+
+Serverless: Would you like to enable this? No
+You can run the “serverless” command again if you change your mind later.
+
+Serverless: Would you like the Framework to update automatically? Yes
+
+Auto updates were succesfully turned on.
+You may turn off at any time with "serverless config --no-autoupdate"
+```
+
+When complete, there will be a serverless.yml in the server directory. By default, the file contains various services with example configuration code commented out. You can remove all the commented out code as I'll walk you through adding the code for each service. You should be left with similar to the following:
+
+```yaml
+service: dlw-nextjs-aws-image-demo
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  hello:
+    handler: handler.hello
+```
+
+The following is optional, however to begin add a stage and region under the runtime:
+
+```yaml
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: eu-west-2
+```
+
+The stage will be used as part of our bucket name and as I'm based in the UK I use either London or Ireland. In this instance I've opted for London.
+
+## S3 bucket
+
+To set up the S3 bucket I like to add a custom property which I can reference via a variable. Underneath framework version add the following:
+
+```yaml
+custom:
+  upload: blog-nextjs-image-demo
+```
+
+We then need to add the necessary permission using IAM. Under region add the following iamRoleStatements:
+
+```yaml
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: eu-west-2
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+      Resource: "arn:aws:s3:::${opt:stage, self:provider.stage, 'dev'}-${self:custom.upload}"
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+      Resource: "arn:aws:s3:::${opt:stage, self:provider.stage, 'dev'}-${self:custom.upload}/*"
+```
+
+The indentation is important, the iamRoleStatments indentation needs to match the region. The iamRoleStatements setup tells AWS which action is allowed for the specified resource. See below for an explanation
+
+Now add the following resource at the end of the serverless.yml:
+
+```yaml
+resources:
+  Resources:
+    S3BucketOutputs:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: "${opt:stage, self:provider.stage, 'dev'}-${self:custom.upload}"
+```
+
+The bucket name will be determined by the variables supplied. ${opt:stage, self:provider.stage, 'dev'} is determined by the flags set when deploying, for example, if I run **sls deploy --stage prod** then self:provider.stage is prod, if no flag is supplied then the second parameter is used.
+
+**${self:custom.upload}** is taken from our custom property supplied. For the demo, I don't supply a flag resulting in a bucket name of **dev-blog-nextjs-image-demo**
+
+That's it for our S3 bucket, to deploy, run the following command:
+
+```bash
+sls deploy
+```
+
+Jump over to the AWS console to see the deployed bucket: [https://s3.console.aws.amazon.com/s3/](https://s3.console.aws.amazon.com/s3/)
+
+## AWS Lambda
+
+We now need to add a couple of Lambda functions to retrieve the images to display on the website. For this we'll need a couple of plugins, underneath **framework: "2"** add the following:
+
+```yaml
+plugins:
+  - serverless-bundle # Package our functions with Webpack
+  - serverless-dotenv-plugin
+```
+
+And then install the plugins
+
+```yaml
+npm i serverless-bundle serverless-pseudo-parameters serverless-dotenv-plugin
+```
+
+**serverless-bundle** allows me to write ES2015 (and newer) JS syntax, in particular module export/imports which are then bundled appropriately for AWS Lambda. **serverless-dotenv-plugin** allows us to pull in variables stored in a .env file which.
+
+### Presigned URL
+
+In order to keep our bucket private, I am going to use a presigned URL. The presigned URL allows temporary public access to our object in the bucket. However I don't want anybody with the presigned URL to be able to access our objects, therefore, I'll add an API Key to secure the API endpoint. For this under custom add a dotenv property
+
+```yaml
+custom:
+  upload: blog-nextjs-image-demo
+  dotenv:
+    path: ../.env
+```
+
+And add a .env file in the root of the project. In the file add the following key replacing _your_api_key_ with something more secure:
+
+```bash
+API_KEY=your_api_key
+```
+
+Now we can finally write our function. Replace the following
+
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+```
+
+with our function code.
+
+```yaml
+functions:
+  signedUrl:
+    handler: handler.signedUrl
+    events:
+      - http:
+          path: signed-url
+          method: get
+          cors: true
+```
+
+Our handler function will be called signedURL, we'll be using a get request to the path **signed-url** from the website. I specify CORs to allow [cross origin resource sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS), however as I'm using Next.js and will be using a getServerSideProps the request won't be coming from the client's browser, therefore, Cors isn't an issue. For client-side only websites, cors will be required.
+
+Now open handler.js and remove all the example code. Add an import to the AWS SDK
+
+```jsx
+import { S3 } from 'aws-sdk';
+```
+
+I'm using object destructuring to pull in the S3 object from the aws-sdk as that is all I need. Add a reference to our bucket name which we'll get from the process environment variables in node.
+
+```jsx
+const Bucket = process.env.BUCKET_NAME;
+```
+
+For the handler function add
+
+```jsx
+export const signedUrl = async (event) => {
+  // if (event.headers['X-API-KEY'] !== process.env.API_KEY) {
+  //   return {
+  //     statusCode: 403
+  //   };
+  // }
+
+  const { key } = event.queryStringParameters;
+  const s3 = new S3({});
+  const presignedGetUrl = await s3.getSignedUrl('getObject', {
+    Bucket,
+    Key: key,
+    Expires: 60 * 5, // time to expire in seconds 5
+  });
+
+  return {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': 'http://localhost:3000',
+      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Methods': '*',
+      'Access-Control-Allow-Credentials': true,
+    },
+    body: JSON.stringify(presignedGetUrl),
+  };
+};
+```
+
+For now I've commented out the API key check to allow us to test without being locked out. First with get the image key from the query sting parameters:
+
+```jsx
+const { key } = event.queryStringParameters;
+```
+
+We then instantiate a new S3 object which is used to generate the presigned URL:
+
+```jsx
+const presignedGetUrl = await s3.getSignedUrl('getObject', {
+  Bucket,
+  Key: key,
+  Expires: 60 * 5, // time to expire in seconds 5
+});
+```
+
+In the options object, I pass in the name of the bucket, the image key and the length of time until the key expires - currently, I've set it to 5 minutes, however in a production application I'd reduce that significantly.
+
+Now we can re-deploy to AWS. A quick tip if you haven't updated the serverless.yml file you can add the -f flag to the command and the name of the function specified in the serverless.yml for a much quicker deployment
+
+```bash
+sls deploy -f signedUrl
+```
+
+In a browser/Postman (or equivalent) you can do a GET request to the API gateway URL that calls our AWS Lambda adding the image key onto the end. For example [https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url?key=daniel-j-schwarz-REjuIrs2YaM-unsplash.jpg](https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url?key=daniel-j-schwarz-REjuIrs2YaM-unsplash.jpg). The responding URL can be copied and pasted in a browser to see the image.
+
+If you're not sure of the URL then you can type **sls info** in the terminal to get your service informarion
+
+```bash
+Service Information
+service: demo-delete
+stage: dev
+region: eu-west-2
+stack: demo-delete-dev
+resources: 13
+api keys:
+  None
+endpoints:
+  GET - https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url
+functions:
+  signedUrl: demo-delete-dev-signedUrl
+layers:
+  None
+```
+
+The image key is one of the images, you uploaded in part 1. To confirm you can go to your bucket in Amazon S3 ([https://s3.console.aws.amazon.com/s3](https://s3.console.aws.amazon.com/s3)).
+
+### Get All Images
+
+We've actually done the functions in the opposite way we'll call them from the website. To display the images with the presigned URLs, we'll need to get the list from our S3 bucket.
+
+Back to the serverless.yml underneath functions add
+
+```bash
+functions:
+  images:
+    handler: handler.images
+    environment:
+      BUCKET_NAME: ${opt:stage, self:provider.stage, 'dev'}-${self:custom.upload}
+    events:
+      - http:
+          path: images
+          method: get
+          cors: true
+```
+
+Again the bucket name is determined by the variables supplied. We have a path to our API endpoint and the method used to invoke the request.
+
+In handler.js add
+
+```jsx
+export const images = async (event) => {
+  // if (event.headers['X-API-KEY'] !== process.env.API_KEY) {
+  //   return {
+  //     statusCode: 403
+  //   };
+  // }
+
+  const data = await getAll();
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(data),
+  };
+};
+```
+
+The S3 listObjectsV2 method requires a callback function therefore in the above I've called a separate function called getAll which returns a promise. If successful the handle returns a status code of 200 and stringifies the data.
+
+In a production app, we need to catch any errors and return the necessary HTTP status code and error.
+
+Above the previous function add
+
+```jsx
+const getAll = async () => {
+  const s3 = new S3({});
+  const params = {
+    Bucket,
+  };
+
+  return new Promise((resolve) => {
+    s3.listObjectsV2(params, (err, data) => {
+      if (err) {
+        return resolve({ error: true, message: err });
+      }
+
+      return resolve({
+        success: true,
+        data: data.Contents,
+      });
+    });
+  });
+};
+```
+
+As before we instantiate a S3 object and setup some parameters
+
+```jsx
+const s3 = new S3({});
+const params = {
+  Bucket,
+};
+```
+
+As mentioned the listObjectsV2 method requires a callback. I've used an anonymous function which I've wrapped in a promise
+
+```jsx
+return new Promise((resolve) => {
+  s3.listObjectsV2(params, (err, data) => {
+    if (err) {
+      return resolve({ error: true, message: err });
+    }
+
+    return resolve({
+      success: true,
+      data: data.Contents,
+    });
+  });
+});
+```
+
+If data is returned then the promise is resolved succesully passing the Content property from the data object.
+
+Deploy the function **sls deploy** and run the API gateway URL. The returned response should look something similar to the following:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "Key": "altanbagana-jargal-USCPvwqeO0U-unsplash.jpg",
+      "LastModified": "2020-12-21T19:16:41.000Z",
+      "ETag": "\"943f9736eb07dd0668006e0990af20df\"",
+      "Size": 3377153,
+      "StorageClass": "STANDARD"
+    },
+    {
+      "Key": "daniel-j-schwarz-REjuIrs2YaM-unsplash.jpg",
+      "LastModified": "2020-12-21T19:16:41.000Z",
+      "ETag": "\"3988e5f9ba3c1118141dae396265054b\"",
+      "Size": 2404910,
+      "StorageClass": "STANDARD"
+    }
+  ]
+}
+```
+
+We now have everything in place to update our website to get the images dynamically.
+
+In the next part we'll update the Next.js website to call our AWS services and secure our API with a key.
+
+- Demo: [https://dlw-nextjs-image-demo.vercel.app/](https://dlw-nextjs-image-demo.vercel.app/)
+- Repository: [https://github.com/dwhiteGUK/dlw-nextjs-image-demo](https://github.com/dwhiteGUK/dlw-nextjs-image-demo)
+- Part 1: [https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-1](https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-1)
