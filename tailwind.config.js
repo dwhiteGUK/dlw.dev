@@ -25,6 +25,12 @@ module.exports = {
             h2: {
               color: theme('colors.gray.900'),
             },
+            h3: {
+              color: theme('colors.gray.900'),
+            },
+            h4: {
+              color: theme('colors.gray.900'),
+            },
             a: {
               color: theme('colors.orange.500'),
               '&:hover': {
@@ -44,6 +50,12 @@ module.exports = {
               color: theme('colors.gray.50'),
             },
             h2: {
+              color: theme('colors.gray.50'),
+            },
+            h3: {
+              color: theme('colors.gray.50'),
+            },
+            h4: {
               color: theme('colors.gray.50'),
             },
             a: {
