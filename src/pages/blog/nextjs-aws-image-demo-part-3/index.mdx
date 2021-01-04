@@ -1,0 +1,242 @@
+---
+layout: blog
+title: Next.js and AWS image demo - Part 3
+timestamp: 1609442713000
+snippet: Updating the Next.js website
+---
+
+In this post we'll update the Next.js website to
+
+- do a GET request for the list of images (objects) from our S3 bucket via a AWS Lambda
+- for each image do a GET request for the presigned URL
+- update the Next.js Image component to use the pre-signed URL
+
+### Get server side props
+
+In _pages/index.js_ undernearth our Home function add:
+
+```jsx
+export async function getServerSideProps() {}
+```
+
+Next.js as 2 main types of getting data fetching
+
+- **getStaticProps** - fetches data at build data resulting in basic HTML files
+- **getServerSideProps** - fetches data on each request
+
+As the presigned URL will expire after 5 minutes we'll need to use getServerSideProps and fetch the data on each request.
+
+Inside the getServerSideProps add a try catch, any errors will result in Next.js sending a 404 and showing the not found route.
+
+```jsx
+try {
+} catch (error) {
+  return {
+    notFound: true,
+  };
+}
+```
+
+Inside the try part of the try...catch we need to add an object for the options used in the fetch (to save repeating the options object). The API_KEY will be used to secure the API. At the end of the blog, we'll go back to our AWS services and add a check for the API key.
+
+If doing the request client-side then we'd use CORs and add a origin check
+
+```jsx
+try {
+  const options = {
+    headers: {
+      'X-API-KEY': process.env.API_KEY,
+    },
+  };
+
+  const imagesRes = await fetch('https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/images', options);
+  const { data: imagesData } = await imagesRes.json();
+} catch (error) {
+  return {
+    notFound: true,
+  };
+}
+```
+
+Underneath the options is our first fetch request with the passed in options with our API key. I've destructured the response and renamed the data property to avoid any name collisions later. The returned response will include the required Key for each image:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "Key": "altanbagana-jargal-USCPvwqeO0U-unsplash.jpg",
+      "LastModified": "2020-12-21T19:16:41.000Z",
+      "ETag": "\"943f9736eb07dd0668006e0990af20df\"",
+      "Size": 3377153,
+      "StorageClass": "STANDARD"
+    },
+    {
+      "Key": "daniel-j-schwarz-REjuIrs2YaM-unsplash.jpg",
+      "LastModified": "2020-12-21T19:16:41.000Z",
+      "ETag": "\"3988e5f9ba3c1118141dae396265054b\"",
+      "Size": 2404910,
+      "StorageClass": "STANDARD"
+    }
+  ]
+}
+```
+
+After the last await, we need to set up an array which will hold the URL from the fetch request. Using a forEach loop over the returned data and push the URL plus Key to the array:
+
+```jsx
+const images = [];
+imagesData.forEach(({ Key }) =>
+  images.push(`https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url?key=${Key}`),
+);
+```
+
+Then loop over the URLs and set up an array with the fetch promise for each image. We'll use Promise.all to await these requests. The returned response will contain the presigned URL we'll need for the Next.js <Image /> component.
+
+```jsx
+const responses = await Promise.all(requests);
+```
+
+Now we need to extract the JSON from the returned responses. For that again I'll set up an array to store the data. Using a Promise.all we map over the responses pushing JSON data to our data array. _As an aside it might be ok to use Promise.allSettled in case one of the requests fails. Obviously this is dependant on how important the requests are and if it is ok for one or more to fail._
+
+```jsx
+const data = [];
+await Promise.all(
+  responses.map(async (r) => {
+    const json = await r.json();
+
+    data.push(json);
+  }),
+);
+
+if (!data) {
+  throw new Error('Data not found');
+}
+```
+
+If succesful that data is returned via props to our index page
+
+```jsx
+return {
+  props: {
+    data,
+  }, // will be passed to the page component as props
+};
+```
+
+The final getServerSideProps will look like the following:
+
+```jsx
+export async function getServerSideProps() {
+  try {
+    const options = {
+      headers: {
+        'X-API-KEY': process.env.API_KEY,
+      },
+    };
+
+    const imagesRes = await fetch('https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/images', options);
+    const { data: imagesData } = await imagesRes.json();
+
+    const images = [];
+    imagesData.forEach(({ Key }) =>
+      images.push(`https://y32f66o0ol.execute-api.eu-west-2.amazonaws.com/dev/signed-url?key=${Key}`),
+    );
+
+    // map every url to the promise of the fetch
+    const requests = images.map((url) => fetch(url, options));
+
+    const responses = await Promise.all(requests);
+
+    const data = [];
+    await Promise.all(
+      responses.map(async (r) => {
+        const json = await r.json();
+
+        data.push(json);
+      }),
+    );
+
+    if (!data) {
+      throw new Error('Data not found');
+    }
+
+    return {
+      props: {
+        data,
+      }, // will be passed to the page component as props
+    };
+  } catch (error) {
+    return {
+      notFound: true,
+    };
+  }
+}
+```
+
+Now in the Home function ensure the data from the props is being passed in:
+
+```jsx
+export default function Home({ data }) {
+```
+
+Inside the main tag replace the image component:
+
+```html
+<image src="/images/altanbagana-jargal-_eMbrsvO7jc-unsplash.jpg" width="{640}" height="{300}" />
+```
+
+With the following which outputs the Image component for each image. The image component will do its magic and output the srcset and relevant size and type.
+
+```jsx
+{
+  data.map((imgUrl) => <Image key={imgUrl} src={imgUrl} width={640} height={300} />);
+}
+```
+
+If not already run **npm run dev** and go to [http://localhost:3000/](http://localhost:3000/) to see your images.
+
+### CSS Grid
+
+You can optionally add the following CSS to styles/Home.module.css (and remove any unused CSS) to add a nice grid to display the images:
+
+```css
+.grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 800px;
+  margin-top: 3rem;
+}
+
+@media (max-width: 600px) {
+  .grid {
+    width: 100%;
+    flex-direction: column;
+  }
+}
+```
+
+### Securing the API
+
+The final thing to do is return to our AWS services, inside server/handler.js uncomment the following lines of code and re-deploy:
+
+```jsx
+if (event.headers['X-API-KEY'] !== process.env.API_KEY) {
+  return {
+    statusCode: 403,
+  };
+}
+```
+
+Now the API is only accessible from a server using our API key. If you try to go to the API endpoints directly from, for example, a browser you'll get a 403 error.
+
+- Demo: [https://dlw-nextjs-image-demo.vercel.app/](https://dlw-nextjs-image-demo.vercel.app/)
+- Repository: [https://github.com/dwhiteGUK/dlw-nextjs-image-demo](https://github.com/dwhiteGUK/dlw-nextjs-image-demo)
+
+To recap here is the full series
+
+- Part 1: [https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-1](https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-1)
+- Part 2: [https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-2](https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-2)
+- Part 3 (final): [https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-3](https://darrenwhite.dev/blog/nextjs-aws-image-demo-part-3)
