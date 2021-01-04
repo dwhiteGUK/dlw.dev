@@ -25,12 +25,21 @@ module.exports = {
             h2: {
               color: theme('colors.gray.900'),
             },
+            h3: {
+              color: theme('colors.gray.900'),
+            },
+            h4: {
+              color: theme('colors.gray.900'),
+            },
             a: {
               color: theme('colors.orange.500'),
               '&:hover': {
                 color: theme('colors.white'),
                 background: theme('colors.black'),
               },
+            },
+            strong: {
+              color: theme('colors.black'),
             },
           },
         },
@@ -43,12 +52,21 @@ module.exports = {
             h2: {
               color: theme('colors.gray.50'),
             },
+            h3: {
+              color: theme('colors.gray.50'),
+            },
+            h4: {
+              color: theme('colors.gray.50'),
+            },
             a: {
               color: theme('colors.orange.500'),
               '&:hover': {
                 color: theme('colors.black'),
                 background: theme('colors.white'),
               },
+            },
+            strong: {
+              color: theme('colors.white'),
             },
           },
         },
