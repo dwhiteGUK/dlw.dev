@@ -32,6 +32,9 @@ module.exports = {
                 background: theme('colors.black'),
               },
             },
+            strong: {
+              color: theme('colors.black'),
+            },
           },
         },
         dark: {
@@ -49,6 +52,9 @@ module.exports = {
                 color: theme('colors.black'),
                 background: theme('colors.white'),
               },
+            },
+            strong: {
+              color: theme('colors.white'),
             },
           },
         },
