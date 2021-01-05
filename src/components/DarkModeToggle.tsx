@@ -1,8 +1,8 @@
-import useDarkMode from 'use-dark-mode';
 import { LightbulbIcon, MoonIcon } from '~/components';
+import { useTheme } from '~/context';
 
 const DarkModeToggle = () => {
-  const { toggle, value } = useDarkMode(true);
+  const { darkMode, toggle } = useTheme();
 
   return (
     <button
@@ -10,7 +10,7 @@ const DarkModeToggle = () => {
       onClick={toggle}
       aria-label="Toggle light and dark mode"
     >
-      {value ? <LightbulbIcon className="w-6 h-6" /> : <MoonIcon className="w-6 h-6" />}
+      {darkMode ? <LightbulbIcon className="w-6 h-6" /> : <MoonIcon className="w-6 h-6" />}
     </button>
   );
 };

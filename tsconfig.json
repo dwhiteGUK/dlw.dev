@@ -3,6 +3,7 @@
     "baseUrl": "./src",
     "paths": {
       "~/components": ["./components/index.ts"],
+      "~/context": ["./context/index.ts"],
       "~/hooks": ["./hooks/index.ts"],
       "~/getPosts": ["./getPosts.ts"],
     },

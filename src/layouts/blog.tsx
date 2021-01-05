@@ -3,8 +3,9 @@ import { FC } from 'react';
 import { NextSeo } from 'next-seo';
 // @ts-ignore
 import { MDXProvider } from '@mdx-js/react';
-import useDarkMode from 'use-dark-mode';
+
 import { AppShell, Container, Heading1, Heading2, Paragraph, aHref } from '~/components';
+import { useTheme } from '~/context';
 
 type FrontMatter = {
   title: string;
@@ -25,14 +26,14 @@ const BlogDetails: FC = ({
   frontMatter: FrontMatter;
   children: React.ReactNode;
 }) => {
-  const darkMode = useDarkMode(false);
+  const { darkMode } = useTheme();
 
   return (
     <AppShell>
       <NextSeo title={`${title} | dlw`} description={snippet} />
       <Container>
         <MDXProvider components={mdxComponents}>
-          <article className={`${darkMode.value ? 'prose prose-dark' : 'prose'}`}>{children}</article>
+          <article className={`${darkMode ? 'prose prose-dark' : 'prose'}`}>{children}</article>
         </MDXProvider>
       </Container>
     </AppShell>

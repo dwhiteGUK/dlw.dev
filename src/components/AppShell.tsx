@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import Head from 'next/head';
-import useDarkMode from 'use-dark-mode';
 
 import { Header } from '~/components';
+import { useTheme } from '~/context';
 
 const AppShell: FC = ({
   children,
@@ -13,13 +13,11 @@ const AppShell: FC = ({
   pageTitle: string;
   snippet: string;
 }) => {
-  const darkMode = useDarkMode(true);
+  const { darkMode } = useTheme();
 
   return (
-    <div className={`${darkMode.value ? 'dark' : ''}`}>
-      <div
-        className={`min-h-screen ${darkMode.value ? 'dark:text-gray-50 dark:bg-gray-900' : 'text-gray-900 bg-white'}`}
-      >
+    <div className={`${darkMode ? 'dark' : ''}`}>
+      <div className={`min-h-screen ${darkMode ? 'dark:text-gray-50 dark:bg-gray-900' : 'text-gray-900 bg-white'}`}>
         <Head>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta charSet="utf-8" />
