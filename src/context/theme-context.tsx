@@ -1,11 +1,13 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext } from 'react';
 import useDarkMode from 'use-dark-mode';
 
-const initialState = true;
+const initialState = {
+  darkMode: true,
+};
 const ThemeContext = createContext(initialState);
 
 function ThemeProvider(props) {
-  const { toggle, value } = useDarkMode(initialState);
+  const { toggle, value } = useDarkMode(initialState.darkMode);
 
   return (
     <ThemeContext.Provider

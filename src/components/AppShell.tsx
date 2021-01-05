@@ -13,14 +13,11 @@ const AppShell: FC = ({
   pageTitle: string;
   snippet: string;
 }) => {
-
   const { darkMode } = useTheme();
 
-  return (    
+  return (
     <div className={`${darkMode ? 'dark' : ''}`}>
-      <div
-        className={`min-h-screen ${darkMode ? 'dark:text-gray-50 dark:bg-gray-900' : 'text-gray-900 bg-white'}`}
-      >
+      <div className={`min-h-screen ${darkMode ? 'dark:text-gray-50 dark:bg-gray-900' : 'text-gray-900 bg-white'}`}>
         <Head>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta charSet="utf-8" />
@@ -33,7 +30,6 @@ const AppShell: FC = ({
         <main className="py-10 space-y-5 s">{children}</main>
       </div>
     </div>
-  
   );
 };
 
