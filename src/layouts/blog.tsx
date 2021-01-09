@@ -5,7 +5,7 @@ import { NextSeo } from 'next-seo';
 import { MDXProvider } from '@mdx-js/react';
 
 import { AppShell, Container, Heading1, Heading2, Paragraph, aHref } from '~/components';
-import { useTheme } from '~/context';
+import { useTheme } from '~/hooks';
 
 type FrontMatter = {
   title: string;
@@ -27,6 +27,7 @@ const BlogDetails: FC = ({
   children: React.ReactNode;
 }) => {
   const { darkMode } = useTheme();
+  console.log('🚀 ~ file: blog.tsx ~ line 30 ~ darkMode', darkMode);
 
   return (
     <AppShell>
