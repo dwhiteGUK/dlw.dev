@@ -5,6 +5,7 @@
       "~/components": ["./components/index.ts"],
       "~/context": ["./context/index.ts"],
       "~/hooks": ["./hooks/index.ts"],
+      "~/util": ["./util/index.ts"],
       "~/getPosts": ["./getPosts.ts"],
     },
     "target": "es5",
