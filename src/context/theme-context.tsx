@@ -13,12 +13,12 @@ const initialState = {
 const ThemeContext = createContext<Partial<ContextProps>>(initialState);
 
 function ThemeProvider(props) {
-  const { toggle, value } = useDarkMode(initialState.darkMode);
+  const { toggle, value } = useDarkMode(props.darkMode);
 
   return (
     <ThemeContext.Provider
       value={{
-        darkMode: value,
+        darkMode: Boolean(value),
         toggle,
       }}
       {...props}
