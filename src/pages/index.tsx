@@ -3,7 +3,7 @@ import { FC } from 'react';
 import { AppShell, Container, IntroHero, BlogHero, Footer } from '~/components';
 import { getCookie } from '~/util';
 
-const IndexPage: FC = ({ darkMode }) => {
+const IndexPage: FC = () => {
   return (
     <AppShell>
       <Container>

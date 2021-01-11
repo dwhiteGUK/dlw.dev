@@ -5,7 +5,7 @@ import { AppShell, BlogItem, Container, Heading1 } from '~/components';
 import { posts } from '~/getPosts';
 import { getCookie } from '~/util';
 
-const Blog: FC = ({ darkMode }) => {
+const Blog: FC = () => {
   return (
     <AppShell>
       <Container>
