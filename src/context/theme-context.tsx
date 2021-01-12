@@ -9,6 +9,7 @@ type ContextProps = {
 const ThemeContext = createContext<Partial<ContextProps>>({});
 
 function ThemeProvider(props) {
+  console.log('🚀 ~ file: theme-context.tsx ~ line 12 ~ ThemeProvider ~ props', props);
   const { toggle, value } = useDarkMode(props.darkMode);
 
   return (

@@ -23,6 +23,7 @@ export default IndexPage;
 
 export async function getServerSideProps({ req }) {
   const darkMode = getCookie(req, 'darkMode');
+  console.log('🚀 ~ file: index.tsx ~ line 26 ~ getServerSideProps ~ darkMode', darkMode);
 
   return {
     props: {
