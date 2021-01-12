@@ -1,5 +1,5 @@
 import { LightbulbIcon, MoonIcon } from '~/components';
-import { useTheme } from '~/hooks';
+import { useTheme } from '~/context';
 
 const DarkModeToggle = () => {
   const { darkMode, toggle } = useTheme();

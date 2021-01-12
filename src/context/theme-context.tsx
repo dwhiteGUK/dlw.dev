@@ -1,5 +1,6 @@
-import { createContext, useContext } from 'react';
+import { createContext, useEffect, useContext } from 'react';
 import useDarkMode from 'use-dark-mode';
+import Cookie from 'js-cookie';
 
 type ContextProps = {
   darkMode: boolean;
@@ -9,8 +10,16 @@ type ContextProps = {
 const ThemeContext = createContext<Partial<ContextProps>>({});
 
 function ThemeProvider(props) {
-  console.log('🚀 ~ file: theme-context.tsx ~ line 12 ~ ThemeProvider ~ props', props);
-  const { toggle, value } = useDarkMode(props.darkMode);
+  console.log(props.darkMode);
+
+  const { toggle, value } = useDarkMode(props.darkMode || false, {
+    classNameDark: 'dark',
+    classNameLight: 'light',
+    onChange: (value) => {
+      console.log('🚀 ~ file: theme-context.tsx ~ line 22 ~ ThemeProvider ~ value', value);
+      Cookie.set('darkMode', JSON.stringify(value), { expires: 7 });      
+    },
+  });
 
   return (
     <ThemeContext.Provider

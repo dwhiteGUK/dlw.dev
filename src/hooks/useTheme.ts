@@ -6,6 +6,7 @@ export const useTheme = (initialState = false) => {
     classNameDark: 'dark',
     classNameLight: 'light',
     onChange: (value) => {
+    console.log('🚀 ~ file: useTheme.ts ~ line 9 ~ useTheme ~ value', value);
       Cookie.set('darkMode', JSON.stringify(value), { expires: 7 });
     },
   });
