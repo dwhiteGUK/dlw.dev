@@ -3,8 +3,8 @@ import { FC } from 'react';
 import { Heading1, MoreLink } from '~/components';
 
 const IntroHero: FC = () => (
-  <div className="grid grid-cols-2 gap-16 lg:gap-5">
-    <div className="bg-gray-700"></div>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-16 lg:gap-5">
+    <div className="bg-gray-700 hidden sm:inline-block"></div>
     <div className="">
       <div className="text-base leading-6 font-semibold uppercase tracking-wider text-gray-500">Introduction</div>
       <Heading1 className="text-3xl leading-9 tracking-tight font-extrabold sm:text-4xl sm:leading-10">
