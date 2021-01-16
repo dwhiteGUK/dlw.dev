@@ -1,0 +1,261 @@
+---
+layout: blog
+title: Puppeteer - login and video download
+timestamp: 1610739947000
+snippet: Using puppeteer to automatically login to a website and download a video
+---
+
+# Puppeteer - log in and video download
+
+## TL;DR
+
+I needed to download a video that was behind a login screen. This gave me a good excuse to try and automate the process as much as possible using puppeteer.
+
+**Requirements** - For this you'll need a recent version of NodeJs (tested with version 14.14.0).
+
+## Full Code
+
+The full code can be seen below, and the repo is available at [https://github.com/dwhiteGUK/dlw-puppeteer-video-download](https://github.com/dwhiteGUK/dlw-puppeteer-video-download). The code is for a very specific situation and therefore would need to be modified accordingly dependant on your requirements.
+
+```javascript
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+
+require('dotenv').config();
+
+function checkExistsWithTimeout(filePath, timeout) {
+  return new Promise(function (resolve, reject) {
+    var timer = setTimeout(function () {
+      watcher.close();
+      reject(new Error('File did not exists and was not created during the timeout.'));
+    }, timeout);
+
+    fs.access(filePath, fs.constants.R_OK, function (err) {
+      if (!err) {
+        clearTimeout(timer);
+        watcher.close();
+        resolve(`${filePath} exists`);
+      }
+    });
+
+    var dir = path.dirname(filePath);
+    var basename = path.basename(filePath);
+    var watcher = fs.watch(dir, function (eventType, filename) {
+      if (eventType === 'rename' && filename === basename) {
+        clearTimeout(timer);
+        watcher.close();
+        resolve(`${filename} exists`);
+      }
+    });
+  });
+}
+
+const readLine = require('readline').createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+(async () => {
+  let browser;
+
+  try {
+    readLine.question('Enter web address: ', async (webAddress) => {
+      // extract origin - used for login
+      // and then downloading video from post
+      const url = new URL(webAddress);
+
+      browser = await puppeteer.launch({
+        headless: false,
+      });
+      const page = await browser.newPage();
+
+      // navigate to URL
+      await page.goto(url.origin);
+
+      // enter login details
+      await page.click('aria/Email address');
+      await page.type('aria/Email address', process.env.USERNAME);
+      await page.click('aria/Password');
+      await page.type('aria/Password', process.env.PASSWORD);
+      await page.keyboard.press('Enter');
+
+      await page.waitForNavigation();
+
+      await page.goto(url.href, { waitUntil: 'load' });
+
+      const { fileName, fileType } = await page.evaluate(async () => {
+        const fileName = 'download-link';
+
+        const el = document.querySelector('video');
+        const { src, type } = el.querySelector('source');
+
+        const downloadLink = document.createElement('a');
+        downloadLink.innerText = 'Download Video';
+        downloadLink.href = src;
+        downloadLink.download = fileName;
+
+        document.querySelector('body').appendChild(downloadLink);
+
+        return { fileName, fileType: type.split('/')[1] };
+      });
+
+      await page.click(`[download="${fileName}"]`);
+
+      const res = await checkExistsWithTimeout(`/Users/dwhite/Downloads/${fileName}.${fileType}`, 30000);
+
+      await browser.close();
+
+      process.exit();
+    });
+  } catch (error) {
+    console.error(error);
+    await browser.close();
+  }
+})();
+```
+
+To begin we pull in the required dependencies:
+
+```javascript
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+```
+
+We need puppeteer for the headless browser and automation. fs and path aren't required at the moment. They'll be used later to check the download exists.
+
+## Code Walkthrough
+
+To start we setup an instance of the nodejs readline module that we'll use to input the web address:
+
+```javascript
+const readLine = require('readline').createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+```
+
+Next add a **IIFE** (Immediately-invoked Function Expression) and I've marked the function async to allow the use of await later. _Side note it looks like node v14.8.0 allows top level await therefore the following could possibly be amended (earlier versions was behind a flag)_
+
+```javascript
+(async () => {})();
+```
+
+Inside the anonymous async function declare a let variable that will hold our puppeteer instance. And add a try-catch:
+
+```javascript
+let browser;
+
+try {
+} catch (error) {
+  console.error(error);
+  await browser.close();
+}
+```
+
+I've declared it outside the try/catch so that if we get a failure the headless browser can be closed. For that, we need a reference to puppeteer.
+
+```javascript
+readLine.question('Enter web address: ', async (webAddress) => {
+  // extract origin - used for login
+  // and then downloading video from post
+  const url = new URL(webAddress);
+
+  browser = await puppeteer.launch({
+    headless: false,
+  });
+  const page = await browser.newPage();
+
+  // navigate to URL
+  await page.goto(url.origin);
+});
+```
+
+The above asks for the full web address via the terminal then launches the puppeteer instance. Later I append a link to the body therefore I set headless to false.
+
+As the video is behind a login I've extracted the origin from the web address. Using the browser instance to crate a new page and navigate to the origin.
+
+```javascript
+// enter login details
+await page.click('aria/Email address');
+await page.type('aria/Email address', process.env.USERNAME);
+await page.click('aria/Password');
+await page.type('aria/Password', process.env.PASSWORD);
+await page.keyboard.press('Enter');
+
+await page.waitForNavigation();
+
+await page.goto(url.href, { waitUntil: 'load' });
+```
+
+Once loaded I select the relevant form inputs and enter the login details which I've stored in a .env file. When the details have been entered, submit the form and wait for the navigation to finish.
+
+```javascript
+const { fileName, fileType } = await page.evaluate(async () => {
+  const el = document.querySelector('video');
+  const { src, type } = el.querySelector('source');
+
+  // filename from src attribute
+  const fileUrl = new URL(src);
+  const fileName = fileUrl.pathname.substring(fileUrl.pathname.lastIndexOf('/') + 1);
+
+  const downloadLink = document.createElement('a');
+  downloadLink.innerText = 'Download Video';
+  downloadLink.href = src;
+  downloadLink.download = fileName;
+
+  document.querySelector('body').appendChild(downloadLink);
+
+  return { fileName, fileType: type.split('/')[1] };
+});
+
+await page.click(`[download="${fileName}"]`);
+```
+
+The above checks the page for a video and grabs the src attribute. I'm using a new instance of the URL object to cleanly get the pathname and remove any query variables. From that get the file name. Depending on your requirements this will definitely need to change on per basis use case (or maybe use the magic of regex).
+
+After several attempts, the only way I could find to programmatically download the video was to create a link element and append it to the webpage.
+
+Once I have all the elements in place I use puppeteer to click the newly created link. Because the link element has a download attribute the browser will automatically download the file rather than try to navigate to the link. It's a shame Puppeteer doesn't support the [downloads API](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/downloads/download) to make the code cleaner.
+
+```javascript
+const res = await checkExistsWithTimeout(`/Users/dwhite/Downloads/${fileName}`, 30000);
+
+await browser.close();
+
+process.exit();
+```
+
+As there doesn't seem a way to check if the download as finished the above calls the below function and checks if the file exists. Hence the requirement for the fs and path modules. The file path will need changing for your system.
+
+And depending on the size and file you may need to change the timeout. It's not the cleanest solution but does work. Happy for suggestions for a better solution.
+
+```javascript
+function checkExistsWithTimeout(filePath, timeout) {
+  return new Promise(function (resolve, reject) {
+    var timer = setTimeout(function () {
+      watcher.close();
+      reject(new Error('File did not exists and was not created during the timeout.'));
+    }, timeout);
+
+    fs.access(filePath, fs.constants.R_OK, function (err) {
+      if (!err) {
+        clearTimeout(timer);
+        watcher.close();
+        resolve(`${filePath} exists`);
+      }
+    });
+
+    var dir = path.dirname(filePath);
+    var basename = path.basename(filePath);
+    var watcher = fs.watch(dir, function (eventType, filename) {
+      if (eventType === 'rename' && filename === basename) {
+        clearTimeout(timer);
+        watcher.close();
+        resolve(`${filename} exists`);
+      }
+    });
+  });
+}
+```
