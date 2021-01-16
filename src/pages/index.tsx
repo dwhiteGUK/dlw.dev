@@ -1,7 +1,6 @@
 import { FC } from 'react';
 
 import { AppShell, Container, IntroHero, BlogHero, Footer } from '~/components';
-import { getCookie } from '~/util';
 
 const IndexPage: FC = () => {
   return (
@@ -20,14 +19,3 @@ const IndexPage: FC = () => {
 };
 
 export default IndexPage;
-
-export async function getServerSideProps({ req }) {
-  const darkMode = getCookie(req, 'darkMode');
-  console.log('🚀 ~ file: index.tsx ~ line 26 ~ getServerSideProps ~ darkMode', darkMode);
-
-  return {
-    props: {
-      darkMode,
-    }, // will be passed to the page component as props
-  };
-}

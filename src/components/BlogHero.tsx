@@ -17,6 +17,6 @@ const BlogHero: FC = () => {
       </div>
     </>
   );
-        }
+};
 
 export default BlogHero;
