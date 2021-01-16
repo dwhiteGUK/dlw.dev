@@ -3,7 +3,6 @@ import { FC } from 'react';
 import { AppShell, BlogItem, Container, Heading1 } from '~/components';
 
 import { posts } from '~/getPosts';
-import { getCookie } from '~/util';
 import { useSortedPosts } from '~/hooks';
 
 const Blog: FC = () => {
@@ -24,13 +23,3 @@ const Blog: FC = () => {
 };
 
 export default Blog;
-
-export async function getServerSideProps({ req }) {
-  const darkMode = getCookie(req, 'darkMode');
-
-  return {
-    props: {
-      darkMode,
-    }, // will be passed to the page component as props
-  };
-}
