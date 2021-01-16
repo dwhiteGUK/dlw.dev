@@ -5,4 +5,6 @@ function importAll(r) {
   }));
 }
 
-export const posts = importAll(require.context('./pages/blog', true, /\.mdx$/));
+export const posts = importAll(require.context('./pages/blog', true, /\.mdx$/)).sort(
+  (a, b) => b.module.frontMatter.timestamp - a.module.frontMatter.timestamp,
+);
