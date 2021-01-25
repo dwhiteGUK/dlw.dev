@@ -1,0 +1,141 @@
+---
+layout: blog
+title: Tailwindcss and useDarkMode hook
+timestamp: 1611608042000
+snippet: Use tailwindcss dark mode with useDarkMode hook
+---
+
+import Image from 'next/image';
+
+# Tailwindcss and useDarkMode hook
+
+## Background
+
+I've been using [tailwindcss](https://tailwindcss.com/) for a couple of years now. Version 2 includes the option to easily add dark mode. I thought I'd give it a try on my blog which is built using [Next.js](https://nextjs.org/)
+
+## Setup
+
+To begin I'll assume you have a react based website with tailwindcss already set up. In the tailwind.config.js file add a darkMode option:
+
+```jsx
+// tailwind.config.js
+module.exports = {
+  darkMode: 'class', // can also be set to 'media'
+  // ...
+};
+```
+
+Now when adding your styles add a dark variant alongside the 'light' styles:
+
+```jsx
+<div class="bg-white dark:bg-gray-800">
+  <h1 class="text-gray-900 dark:text-white">Dark mode is here!</h1>
+  <p class="text-gray-600 dark:text-gray-300">Lorem ipsum...</p>
+</div>
+```
+
+If the .dark class is present earlier in the html tree then the dark theme will be applied.
+
+## useDarkMode Hook
+
+For activiating the .dark class, I'm using the excellent [useDarkMode](https://github.com/donavon/use-dark-mode) hook by [Donavon West](https://github.com/donavon) which you'll need to install:
+
+```bash
+npm i use-dark-mode
+```
+
+The plugin works by toggling a class added to the body element (or a different element if specified):
+
+```css
+body.light-mode {
+  background-color: #fff;
+  color: #333;
+  transition: background-color 0.3s ease;
+}
+body.dark-mode {
+  background-color: #1a1919;
+  color: #999;
+}
+```
+
+However, as mentioned previously tailwindcss applies the dark mode if there is a .dark class, therefore, the default classes will need to be overridden by passing the options to the useDarkMode hook:
+
+```jsx
+const { toggle, value } = useDarkMode(initialState, {
+  classNameDark: 'dark',
+  classNameLight: 'light',
+});
+```
+
+And thats it unless you are using the [tailwindcss typography](https://github.com/tailwindlabs/tailwindcss-typography) plugin.
+
+## tailwindcss typgraphy
+
+As my blog content is taken Markdown files I'm using the [tailwindcss typography](https://github.com/tailwindlabs/tailwindcss-typography) plugin to add typograhic styles to my content. This is done by adding a .prose class to the content wrapper element:
+
+```jsx
+<article class="prose">{{ markdown }}</article>
+```
+
+For the dark theme:
+
+```jsx
+<article class="prose prose-dark">{{ markdown }}</article>
+```
+
+For the blog content I would check the value returned and apply the classes accordingly:
+
+```jsx
+const BlogDetails = () => {
+  const { darkMode } = useTheme();
+
+  return (
+    <AppShell>
+      <NextSeo title={`${title} | dlw`} description={snippet} />
+      <Container>
+        <MDXProvider components={mdxComponents}>
+          <article className={`${darkMode ? 'prose prose-dark' : 'prose'}`}>{children}</article>
+        </MDXProvider>
+      </Container>
+    </AppShell>
+  );
+};
+
+export default BlogDetails;
+```
+
+The issue I ran into was the .dark class would be applied by the hook but the value available when setting the .prose value could be out of sync resulting in unreadable text:
+
+<Image src="/images/blog/tailwindcss-dark-mode-issue.png" width="{640}" height="{300}" />
+
+My solution was to wrap the useDarkMode hook in my own custom hook:
+
+```jsx
+import { useEffect } from 'react';
+import useDarkMode from 'use-dark-mode';
+
+export const useTheme = (initialState = false) => {
+  const { toggle, value } = useDarkMode(initialState, {
+    classNameDark: 'dark',
+    classNameLight: 'light',
+  });
+
+  useEffect(() => {
+    const proseEl = document.querySelector('article.prose');
+
+    if (!proseEl) {
+      return;
+    }
+
+    if (value) {
+      document?.querySelector('article.prose').classList.add('prose-dark');
+    } else {
+      document?.querySelector('article.prose').classList.remove('prose-dark');
+    }
+  }, [value]);
+
+  return { toggle, darkMode: value };
+};
+```
+
+The hook listens for any changes to the dark mode and adds or removes the .prose-dark class as required. With the hook running on every page I escape the useEffect if the required HTML element isn't present.
