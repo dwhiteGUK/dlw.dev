@@ -106,7 +106,14 @@ export default BlogDetails;
 
 The issue I ran into was the .dark class would be applied by the hook but the value available when setting the .prose value could be out of sync resulting in unreadable text:
 
-<Image src="/images/blog/tailwindcss-dark-mode-issue.png" width="{640}" height="{300}" />
+<Image
+  src="/images/blog/tailwindcss-dark-mode-issue.png"
+  width={950}
+  height={660}
+  quality={90}
+  alt="Devtools network screen grab showing image format and size"
+  layout="responsive"
+/>
 
 My solution was to wrap the useDarkMode hook in my own custom hook:
 

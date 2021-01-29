@@ -1,11 +1,11 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import { NextSeo } from 'next-seo';
 // @ts-ignore
 import { MDXProvider } from '@mdx-js/react';
 
 import { AppShell, Container, Heading1, Heading2, Paragraph, aHref } from '~/components';
-import { useTheme } from '~/hooks';
+import { useTheme } from 'next-themes';
 
 type FrontMatter = {
   title: string;
@@ -26,14 +26,20 @@ const BlogDetails: FC = ({
   frontMatter: FrontMatter;
   children: React.ReactNode;
 }) => {
-  const { darkMode } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const { theme } = useTheme();
+
+  // When mounted on client, now we can show the UI
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
 
   return (
     <AppShell>
       <NextSeo title={`${title} | dlw`} description={snippet} />
       <Container>
         <MDXProvider components={mdxComponents}>
-          <article className={`${darkMode ? 'prose prose-dark' : 'prose'}`}>{children}</article>
+          <article className={`${theme === 'dark' ? 'prose prose-dark' : 'prose'}`}>{children}</article>
         </MDXProvider>
       </Container>
     </AppShell>
