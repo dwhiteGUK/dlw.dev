@@ -2,7 +2,6 @@ import { FC } from 'react';
 import Head from 'next/head';
 
 import { Header } from '~/components';
-import { useTheme } from '~/hooks';
 
 const AppShell: FC = ({
   children,
