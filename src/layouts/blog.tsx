@@ -9,7 +9,7 @@ import { useTheme } from 'next-themes';
 
 type FrontMatter = {
   title: string;
-  snippet: string;
+  snippet: string; 
 };
 
 const mdxComponents = {
@@ -27,7 +27,6 @@ const BlogDetails: FC = ({
   children: React.ReactNode;
 }) => {
   const [mounted, setMounted] = useState(false);
-  const { theme } = useTheme();
 
   // When mounted on client, now we can show the UI
   useEffect(() => setMounted(true), []);
@@ -39,7 +38,7 @@ const BlogDetails: FC = ({
       <NextSeo title={`${title} | dlw`} description={snippet} />
       <Container>
         <MDXProvider components={mdxComponents}>
-          <article className={`${theme === 'dark' ? 'prose prose-dark' : 'prose'}`}>{children}</article>
+          <article className="prose dark:prose-dark">{children}</article>
         </MDXProvider>
       </Container>
     </AppShell>
