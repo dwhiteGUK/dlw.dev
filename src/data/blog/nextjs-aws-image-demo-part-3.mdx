@@ -93,7 +93,7 @@ imagesData.forEach(({ Key }) =>
 );
 ```
 
-Then loop over the URLs and set up an array with the fetch promise for each image. We'll use Promise.all to await these requests. The returned response will contain the presigned URL we'll need for the Next.js <Image /> component.
+Then loop over the URLs and set up an array with the fetch promise for each image. We'll use Promise.all to await these requests. The returned response will contain the presigned URL we'll need for the Next.js Image component.
 
 ```jsx
 const responses = await Promise.all(requests);

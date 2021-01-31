@@ -73,7 +73,9 @@ module.exports = {
       }),
     },
   },
-  variants: {},
+  variants: {
+    typography: ['dark'],
+  },
   plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography'), require('@tailwindcss/aspect-ratio')],
   future: {
     purgeLayersByDefault: true,
