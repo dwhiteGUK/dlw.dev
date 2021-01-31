@@ -1,6 +1,6 @@
 import hydrate from 'next-mdx-remote/hydrate';
 
-import { BlogDetails } from '~/layouts/';
+import { BlogDetails } from '~/layouts';
 import { getFiles, getFileBySlug } from '~/lib';
 import { MdxComponents } from '~/components';
 

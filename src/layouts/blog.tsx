@@ -19,7 +19,7 @@ const mdxComponents = {
   a: aHref,
 };
 
-const BlogDetails: FC = ({
+const BlogDetails = ({
   frontMatter: { title, snippet },
   children,
 }: {

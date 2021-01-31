@@ -1,10 +1,8 @@
-import { FC } from 'react';
-
 import { AppShell, BlogItem, Container, Heading1 } from '~/components';
 import { getAllFilesFrontMatter } from '~/lib';
 import { useSortedPosts } from '~/hooks';
 
-const Blog: FC = ({ posts }) => {
+const Blog = ({ posts }: { posts: [] }) => {
   const sortedPosts = useSortedPosts(posts);
 
   return (
