@@ -8,6 +8,7 @@
       "~/util": ["./util/index.ts"],
       "~/layouts": ["./layouts/index.ts"],
       "~/lib": ["./lib/index.ts"],
+      "~/styles": ["./styles/*"],
     },
     "target": "es5",
     "lib": [
