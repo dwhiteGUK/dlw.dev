@@ -10,6 +10,9 @@ type FrontMatter = {
   title: string;
   snippet: string;
   timestamp: number;
+  readingTime: {
+    text: string;
+  }
 };
 
 const mdxComponents = {
@@ -20,7 +23,7 @@ const mdxComponents = {
 };
 
 const BlogDetails = ({
-  frontMatter: { title, snippet, timestamp },
+  frontMatter: { title, snippet, timestamp, readingTime },
   children,
 }: {
   frontMatter: FrontMatter;
@@ -72,7 +75,7 @@ const BlogDetails = ({
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            6 min read
+            {readingTime.text}
           </div>
         </div>
         <MDXProvider components={mdxComponents}>
