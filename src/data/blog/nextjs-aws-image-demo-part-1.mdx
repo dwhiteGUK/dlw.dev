@@ -5,8 +5,6 @@ timestamp: 1607509553000
 snippet: Using the Next.js image component
 ---
 
-# Next.js and AWS image demo - Part 1
-
 For a current work project, we need to load images like most web applications. With one mind on performance I'd like those images to be different sizes dependant on the device viewing them and be served in the most efficient format (e.g. [webP](https://developers.google.com/speed/webp), [AVIF](https://jakearchibald.com/2020/avif-has-landed/) etc). There are many services that provide this functionality as a software as a service with two of the most well know being [Cloudinary](https://cloudinary.com/) and [imgIX](https://www.imgix.com/).
 
 However I needed to keep costs down and would need to roll my own. Rather fortuitously the application is built on [Next.js](https://nextjs.org/) and version 10 introduces the [Next.js image component](https://nextjs.org/docs/basic-features/image-optimization).
