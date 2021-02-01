@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter'; // parse front matter
 import renderToString from 'next-mdx-remote/render-to-string'; // Utilities for loading mdx from any remote source as data, rather than as a local import
+import mdxPrism from 'mdx-prism'; // code highlighting/formatting
 
 import { MdxComponents } from '~/components';
 
@@ -35,7 +36,12 @@ export async function getFileBySlug(type, slug) {
   const source = fs.readFileSync(path.join(root, 'src/data', type, `${slug}.mdx`), 'utf8')
 
   const { data, content } = matter(source);
-  const mdxSource = await renderToString(content, { components: MdxComponents });
+  const mdxSource = await renderToString(content, {
+    components: MdxComponents,
+    mdxOptions: {
+      rehypePlugins: [mdxPrism],
+    }
+  });
 
   return {
     mdxSource,

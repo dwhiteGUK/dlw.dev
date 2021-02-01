@@ -13,6 +13,11 @@ module.exports = {
       gray: colors.gray,
       lightBlue: colors.lightBlue,
       cyan: colors.cyan,
+      green: colors.green,
+      purple: colors.purple,
+      yellow: colors.yellow,
+      pink: colors.pink,
+      blue: colors.blue,
     },
     extend: {
       typography: (theme) => ({
@@ -37,10 +42,12 @@ module.exports = {
                 color: theme('colors.white'),
                 background: theme('colors.black'),
               },
+              code: { color: theme('colors.blue.400') },
             },
             strong: {
               color: theme('colors.black'),
             },
+            code: { color: theme('colors.pink.500') },
           },
         },
         dark: {
