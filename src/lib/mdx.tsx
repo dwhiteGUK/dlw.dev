@@ -3,6 +3,7 @@ import path from 'path';
 import matter from 'gray-matter'; // parse front matter
 import renderToString from 'next-mdx-remote/render-to-string'; // Utilities for loading mdx from any remote source as data, rather than as a local import
 import mdxPrism from 'mdx-prism'; // code highlighting/formatting
+import readingTime from 'reading-time';
 
 import { MdxComponents } from '~/components';
 
@@ -47,6 +48,7 @@ export async function getFileBySlug(type, slug) {
     mdxSource,
     frontMatter: {
       ...data,
+      readingTime: readingTime(content),
     },
   };
 }
