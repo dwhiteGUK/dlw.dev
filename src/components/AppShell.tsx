@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import Head from 'next/head';
 
-import { Header } from '~/components';
+import { Container, Footer, Header } from '~/components';
 
 const AppShell: FC = ({
   children,
@@ -25,6 +25,9 @@ const AppShell: FC = ({
           <Header />
         </div>
         <main className="py-10 space-y-5 s">{children}</main>
+        <Container>
+          <Footer />
+        </Container>        
       </div>
     </div>
   );

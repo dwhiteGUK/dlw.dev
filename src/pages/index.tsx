@@ -15,9 +15,6 @@ const IndexPage= ({ posts }: { posts: [] }) => {
       <Container bg>
         <BlogHero posts={sortedPosts} />
       </Container>
-      <Container>
-        <Footer />
-      </Container>
     </AppShell>
   );
 };
