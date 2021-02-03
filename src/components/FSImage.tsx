@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 function useFullScreen() {
-  const fullScreenRef = useRef<HTMLInputElement>(null);
+  const fullScreenRef = useRef<HTMLDivElement>();
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   function toggleFullScreen() {

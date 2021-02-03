@@ -5,7 +5,6 @@ export { default as Container } from './Container';
 export { default as DarkModeToggle } from './DarkModeToggle';
 export { default as Footer } from './Footer';
 export { default as FSImage } from './FSImage';
-export { default as FullScreen } from './FullScreen';
 export { default as Header } from './Header';
 export { default as HeadPost } from './HeadPost';
 export { default as IntroHero } from './IntroHero';
