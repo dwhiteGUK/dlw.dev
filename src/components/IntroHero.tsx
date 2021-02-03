@@ -1,22 +1,19 @@
-import { FC, useEffect, useRef } from 'react';
-import Image from 'next/image';
+import { FC } from 'react';
 
-import { Heading1, FullScreen } from '~/components';
+import { Heading1, FSImage } from '~/components';
 
 const IntroHero: FC = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-16 lg:gap-5">
       <div className="bg-gray-700 hidden sm:inline-block">
-        <FullScreen>
-          <Image
-            src="/images/xps-EzYq1HOl5_8-unsplash.jpg"
-            width="10276"
-            height="7340"
-            alt="Placeholder image"
-            layout="responsive"
-            tabIndex="0"
-          />
-        </FullScreen>
+        <FSImage
+          src="/images/xps-EzYq1HOl5_8-unsplash.jpg"
+          width="10276"
+          height="7340"
+          alt="Placeholder image"
+          layout="responsive"
+          tabIndex="0"
+        />
       </div>
       <div className="">
         <div className="text-base leading-6 font-semibold uppercase tracking-wider text-gray-500">Introduction</div>
