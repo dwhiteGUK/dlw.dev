@@ -49,7 +49,7 @@ const timeBetween = (prevDate, nextDate) => {
 };
 
 export const useRelativeTime = (createdAt) => {
-  if (!createdAt) return '';
+  if (!createdAt || !Intl.RelativeTimeFormat) return '';
 
   const { value, format } = timeBetween(createdAt, Date.now());
 
