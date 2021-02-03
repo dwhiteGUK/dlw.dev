@@ -82,6 +82,9 @@ module.exports = {
   },
   variants: {
     typography: ['dark'],
+    extend: {
+      display: ['group-hover'],
+    },
   },
   plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography'), require('@tailwindcss/aspect-ratio')],
   future: {
