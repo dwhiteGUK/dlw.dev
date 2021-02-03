@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 function useFullScreen() {
-  const fullScreenRef = useRef();
+  const fullScreenRef = useRef<HTMLInputElement>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   function toggleFullScreen() {
     if (!fullScreenRef.current) return;
 
-    if (!document.fullscreenElement) {
+    if (!isFullScreen) {
       fullScreenRef.current.requestFullscreen();
       setIsFullScreen(true);
     } else {
@@ -38,11 +38,7 @@ function FSImage(props) {
   const { isFullScreen, toggleFullScreen, fullScreenRef } = useFullScreen();
 
   return (
-    <div
-      onClick={() => toggleFullScreen()}
-      ref={fullScreenRef}
-      className="relative group bg-white dark:bg-gray-900"
-    >
+    <div onClick={() => toggleFullScreen()} ref={fullScreenRef} className="relative group bg-white dark:bg-gray-900">
       <div className="absolute top-1 right-1 bg-orange-700 bg-opacity-50 p-2 hidden group-hover:inline-block z-20">
         <svg
           className={`w-7 h-7 z-40 text-gray-100  ${isFullScreen ? 'hidden' : 'inline-block'}`}
