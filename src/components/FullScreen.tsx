@@ -31,7 +31,7 @@ function FullScreen({ children }) {
   }, []);
 
   return (
-    <div onClick={() => toggleFullScreen()} ref={fullScreenRef} className="relative group">
+    <div onClick={() => toggleFullScreen()} ref={fullScreenRef} className="relative group bg-white dark:bg-gray-900">
       <div className="absolute top-1 right-1 bg-orange-700 bg-opacity-50 p-2 hidden group-hover:inline-block z-20">
         <svg
           className={`w-7 h-7 z-40 text-gray-100  ${isFullScreen ? 'hidden' : 'inline-block'}`}
@@ -62,7 +62,9 @@ function FullScreen({ children }) {
           />
         </svg>
       </div>
-      {children}
+      <div className={`${isFullScreen ? 'grid items-center overflow-scroll object-contain' : 'w-full'} h-full`}>
+        {children}
+      </div>
     </div>
   );
 }
