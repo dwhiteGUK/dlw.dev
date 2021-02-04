@@ -51,6 +51,18 @@ const timeBetween = (prevDate, nextDate) => {
 export const useRelativeTime = (createdAt) => {
   if (!createdAt) return '';
 
+  if (!Intl.RelativeTimeFormat) {
+    const postDate = new Date(createdAt);
+    const formattedDate = Intl.DateTimeFormat('en-GB', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(postDate);
+
+    return formattedDate;
+  }
+
   const { value, format } = timeBetween(createdAt, Date.now());
 
   // @ts-ignore
