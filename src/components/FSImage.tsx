@@ -1,12 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, ReactElement } from 'react';
 import Image from 'next/image';
 
 function useFullScreen() {
   const fullScreenRef = useRef<HTMLDivElement>();
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  function toggleFullScreen() {
+  const toggleFullScreen = useCallback(() => {
     if (!fullScreenRef.current) return;
+
+    if (!fullScreenRef.current.requestFullscreen) {
+      console.log(fullScreenRef.current.dataset.src);
+      return (window.location.href = fullScreenRef.current.dataset.src);
+    }
 
     if (!isFullScreen) {
       fullScreenRef.current.requestFullscreen();
@@ -17,7 +22,7 @@ function useFullScreen() {
         setIsFullScreen(false);
       }
     }
-  }
+  }, [isFullScreen]);
 
   useEffect(() => {
     document.addEventListener(
@@ -29,16 +34,24 @@ function useFullScreen() {
       },
       false,
     );
-  }, []);
+  }, [toggleFullScreen]);
 
   return { isFullScreen, toggleFullScreen, fullScreenRef };
 }
 
-function FSImage(props) {
+function FSImage(props): ReactElement {
   const { isFullScreen, toggleFullScreen, fullScreenRef } = useFullScreen();
 
+  // eslint-disable-next-line react/prop-types
+  const { src } = props;
+
   return (
-    <div onClick={() => toggleFullScreen()} ref={fullScreenRef} className="relative group bg-white dark:bg-gray-900">
+    <div
+      onClick={() => toggleFullScreen()}
+      ref={fullScreenRef}
+      data-src={src}
+      className="relative group bg-white dark:bg-gray-900"
+    >
       <div className="absolute top-1 right-1 bg-orange-700 bg-opacity-50 p-2 hidden group-hover:inline-block z-20">
         <svg
           className={`w-7 h-7 z-40 text-gray-100  ${isFullScreen ? 'hidden' : 'inline-block'}`}
