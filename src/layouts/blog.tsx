@@ -12,7 +12,7 @@ type FrontMatter = {
   timestamp: number;
   readingTime: {
     text: string;
-  }
+  };
 };
 
 const mdxComponents = {
@@ -38,7 +38,13 @@ const BlogDetails = ({
   }).format(postDate);
 
   return (
-    <AppShell>
+    <AppShell
+      title={`${title} - Darren White`}
+      description={snippet}
+      image=""
+      date={postDate.toISOString()}
+      type="article"
+    >
       <NextSeo title={`${title} | dlw`} description={snippet} />
       <Container>
         <Heading1>{title}</Heading1>
