@@ -37,14 +37,16 @@ const BlogDetails = ({
     day: 'numeric',
   }).format(postDate);
 
+  const customMeta = {
+    title: `${title} - Darren White`,
+    description: snippet,
+    image: '',
+    date: postDate.toISOString(),
+    type: 'article',
+  }
+
   return (
-    <AppShell
-      title={`${title} - Darren White`}
-      description={snippet}
-      image=""
-      date={postDate.toISOString()}
-      type="article"
-    >
+    <AppShell customMeta={customMeta}>
       <NextSeo title={`${title} | dlw`} description={snippet} />
       <Container>
         <Heading1>{title}</Heading1>

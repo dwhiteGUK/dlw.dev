@@ -4,16 +4,16 @@ import { useRouter } from 'next/router';
 
 import { Container, Footer, Header } from '~/components';
 
-const AppShell: FC = ({
+const AppShell = ({
   children,
   customMeta,
 }: {
   children: React.ReactNode;
-  customMeta: {
+  customMeta?: {
     title: string;
     description: string;
     image: string;
-    data: string;
+    date: string;
     type: string;
   };
 }) => {
