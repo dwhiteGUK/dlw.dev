@@ -1,0 +1,432 @@
+---
+layout: blog
+title: Multiple Themes for Next.js with next-themes, Tailwind CSS and CSS Custom Properties
+timestamp: 1612958094000
+snippet: Switching between multiple themes in Next.js
+---
+
+Below is an approach for switching between multiple themes using [next themes](https://github.com/pacocoursey/next-themes) and not just light and dark themes. This approach combines next themes, Tailwind CSS and CSS custom properties.
+
+A demo of the final output and a link to the final code can be accessed at the following links:
+
+- Demo: [https://dlw-nextjs-tailwindcss-theming.vercel.app/](https://dlw-nextjs-tailwindcss-theming.vercel.app/)
+- Repo: [https://github.com/dwhiteGUK/dlw-nextjs-tailwindcss-theming](https://github.com/dwhiteGUK/dlw-nextjs-tailwindcss-theming)
+
+## Pre-requisites
+
+- Node (tested with v14, a couple of version earlier should be fine)
+- Npm (tested with v7)
+- Next.JS and Tailwind CSS installed, getting started instructions can be found on the [Tailwind CSS website](https://tailwindcss.com/docs/guides/nextjs). Choose the "[Include Tailwind in your CSS](https://tailwindcss.com/docs/guides/nextjs#include-tailwind-in-your-css)" option (not the JS import option).
+
+## Next themes
+
+For controlling which theme is shown we'll use [next-themes](https://www.npmjs.com/package/next-themes). Install the dependency using your prefered package manager:
+
+```bash
+npm install next-themes
+# or
+yarn add next-themes
+```
+
+If you haven't already add a [custom app](https://nextjs.org/docs/advanced-features/custom-app) component, Create-next-app will do this automatically. Now wrap Component with the theme provider component exported from next-themes
+
+```jsx
+import { ThemeProvider } from 'next-themes';
+
+import '../styles/globals.css';
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <ThemeProvider>
+      <Component {...pageProps} />
+    </ThemeProvider>
+  );
+}
+
+export default MyApp;
+```
+
+For reasons that will be explained later Tailwind CSS will be imported via the global style sheet. We need to use the CSS import solution to allow the use of CSS custom properties when changing the theme.
+
+On that note, we need a way to change our theme. Add a new directory called **components.** Inside that directory add a new file **ThemeChanger.js** for the theme switcher component:
+
+```jsx
+// ./components/ThemeChanger.js
+import { useEffect, useState } from 'react';
+import { useTheme } from 'next-themes';
+
+const themes = [{ name: 'Light' }, { name: 'Dark' }, { name: 'Emerald' }, { name: 'Pink' }];
+
+const ThemeChanger = () => {
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
+
+  // When mounted on client, now we can show the UI
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
+  return (
+    <div className="p-8 flex justify-between items-center font-bold text-xl bg-th-background-secondary text-th-primary-dark">
+      <span>
+        The current theme is: <strong>{theme}</strong>
+      </span>
+      <div>
+        <label htmlFor="theme-select" className="sr-only mr-2">
+          Choose theme:
+        </label>
+        <select
+          name="theme"
+          id="theme-select"
+          className="bg-white text-gray-800 border-gray-800 border py-1 px-3"
+          onChange={(e) => setTheme(e.currentTarget.value)}
+          value={theme}
+        >
+          <option value="">Select Theme</option>
+          {themes.map((t) => (
+            <option key={t.name.toLowerCase()} value={t.name.toLowerCase()}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+};
+
+export default ThemeChanger;
+```
+
+Next.js is SSR (server-side rendered) or SSG (static site generated) we don't know the theme on the server, therefore, we add a check to see if the component is mounted:
+
+```jsx
+// When mounted on client, now we can show the UI
+useEffect(() => setMounted(true), []);
+
+if (!mounted) return null;
+```
+
+If not it returns null ensuring the UI uses the current theme once the page is mounted on the client.
+
+The theme changer component includes some Tailwind CSS classes. These aren't important, the main thing of note is the `useTheme` hook and `onChange` handler for setting the theme. I also have a array with the list of themes:
+
+```jsx
+const themes = [{ name: 'Light' }, { name: 'Dark' }, { name: 'Emerald' }, { name: 'Pink' }];
+```
+
+These will be referenced when setting up the "themes" in the global.css later
+
+## Demo Page
+
+Optionally add the following content to pages/index.js. The actual content isn't important, you just need some content with Tailwind CSS classes
+
+```jsx
+import ThemeChanger from '../components/ThemeChanger';
+
+export default function Home() {
+  return (
+    <div className="antialiased font-sans h-full w-full bg-th-background text-th-primary-dark">
+      <ThemeChanger />
+
+      <main>
+        <div className="relative pt-16 pb-20 px-4 sm:px-6 lg:pt-24 lg:pb-28 lg:px-8 bg-th-background">
+          <div className="relative max-w-7xl mx-auto">
+            <div className="text-center">
+              <h2 className="text-3xl tracking-tight font-extrabold text-th-accent-medium sm:text-4xl">
+                From the blog
+              </h2>
+              <p className="mt-3 max-w-2xl mx-auto text-xl sm:mt-4">
+                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Ipsa libero labore natus atque, ducimus sed.
+              </p>
+            </div>
+            <div className="mt-12 max-w-lg mx-auto grid gap-5 lg:grid-cols-3 lg:max-w-none">
+              <div className="flex flex-col rounded-lg shadow-lg overflow-hidden">
+                <div className="flex-shrink-0">
+                  <img
+                    className="h-48 w-full object-cover"
+                    src="https://images.unsplash.com/photo-1496128858413-b36217c2ce36?ixlib=rb-1.2.1&ixqx=UsVmjgUMfb&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1679&q=80"
+                    alt=""
+                  />
+                </div>
+                <div className="flex-1 bg-th-background-secondary p-6 flex flex-col justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-th-accent-medium">
+                      <a href="#" className="hover:underline">
+                        Article
+                      </a>
+                    </p>
+                    <a href="#" className="block mt-2">
+                      <p className="text-xl font-semibold">Boost your conversion rate</p>
+                      <p className="mt-3 text-base">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto accusantium praesentium
+                        eius, ut atque fuga culpa, similique sequi cum eos quis dolorum.
+                      </p>
+                    </a>
+                  </div>
+                  <div className="mt-6 flex items-center">
+                    <div className="flex-shrink-0">
+                      <a href="#">
+                        <span className="sr-only">Roel Aufderehar</span>
+                        <img
+                          className="h-10 w-10 rounded-full"
+                          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixqx=UsVmjgUMfb&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                          alt=""
+                        />
+                      </a>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium">
+                        <a href="#" className="hover:underline">
+                          Roel Aufderehar
+                        </a>
+                      </p>
+                      <div className="flex space-x-1 text-sm">
+                        <time dateTime="2020-03-16">Mar 16, 2020</time>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>6 min read</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col rounded-lg shadow-lg overflow-hidden">
+                <div className="flex-shrink-0">
+                  <img
+                    className="h-48 w-full object-cover"
+                    src="https://images.unsplash.com/photo-1547586696-ea22b4d4235d?ixlib=rb-1.2.1&ixqx=UsVmjgUMfb&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1679&q=80"
+                    alt=""
+                  />
+                </div>
+                <div className="flex-1 bg-th-background-secondary p-6 flex flex-col justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-th-accent-medium">
+                      <a href="#" className="hover:underline">
+                        Video
+                      </a>
+                    </p>
+                    <a href="#" className="block mt-2">
+                      <p className="text-xl font-semibold">How to use search engine optimization to drive sales</p>
+                      <p className="mt-3 text-base">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Velit facilis asperiores porro quaerat
+                        doloribus, eveniet dolore. Adipisci tempora aut inventore optio animi., tempore temporibus quo
+                        laudantium.
+                      </p>
+                    </a>
+                  </div>
+                  <div className="mt-6 flex items-center">
+                    <div className="flex-shrink-0">
+                      <a href="#">
+                        <span className="sr-only">Brenna Goyette</span>
+                        <img
+                          className="h-10 w-10 rounded-full"
+                          src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixqx=UsVmjgUMfb&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                          alt=""
+                        />
+                      </a>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium">
+                        <a href="#" className="hover:underline">
+                          Brenna Goyette
+                        </a>
+                      </p>
+                      <div className="flex space-x-1 text-sm">
+                        <time dateTime="2020-03-10">Mar 10, 2020</time>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>4 min read</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col rounded-lg shadow-lg overflow-hidden">
+                <div className="flex-shrink-0">
+                  <img
+                    className="h-48 w-full object-cover"
+                    src="https://images.unsplash.com/photo-1492724441997-5dc865305da7?ixlib=rb-1.2.1&ixqx=UsVmjgUMfb&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1679&q=80"
+                    alt=""
+                  />
+                </div>
+                <div className="flex-1 bg-th-background-secondary p-6 flex flex-col justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-th-accent-medium">
+                      <a href="#" className="hover:underline">
+                        Case Study
+                      </a>
+                    </p>
+                    <a href="#" className="block mt-2">
+                      <p className="text-xl font-semibold">Improve your customer experience</p>
+                      <p className="mt-3 text-base">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Sint harum rerum voluptatem quo
+                        recusandae magni placeat saepe molestiae, sed excepturi cumque corporis perferendis hic.
+                      </p>
+                    </a>
+                  </div>
+                  <div className="mt-6 flex items-center">
+                    <div className="flex-shrink-0">
+                      <a href="#">
+                        <span className="sr-only">Daniela Metz</span>
+                        <img
+                          className="h-10 w-10 rounded-full"
+                          src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-1.2.1&ixqx=UsVmjgUMfb&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                          alt=""
+                        />
+                      </a>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium">
+                        <a href="#" className="hover:underline">
+                          Daniela Metz
+                        </a>
+                      </p>
+                      <div className="flex space-x-1 text-sm">
+                        <time dateTime="2020-02-12">Feb 12, 2020</time>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>11 min read</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+```
+
+The two main things to note is
+
+- There is no dark: prefix on any of the classes. Tailwind CSS comes with [dark mode](https://tailwindcss.com/docs/dark-mode) backed in. However, as we'll be switching between multiple themes and using CSS custom properties it makes sense to be consistent across all the themes
+- I have used custom Tailwind CSS classes, for example, bg-th-background and text-th-secondary-200 etc. These custom classes it what enables the theme switching to happen, hopefully, the logic to how this works is explained below.
+
+## Tailwind CSS Setup and CSS Custom Properties
+
+As per the [Tailwind CSS instructions](https://tailwindcss.com/docs/guides/nextjs#include-tailwind-in-your-css), you should have a global.css that looks similar to the following:
+
+```css
+/* ./styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+After the Tailwind CSS includes, add the following CSS custom properties:
+
+```css
+:root {
+  --background: theme('colors.white');
+  --background-secondary: theme('colors.gray.50');
+
+  --primary-dark: theme('colors.gray.900');
+  --primary-medium: theme('colors.gray.700');
+  --primary-light: theme('colors.gray.500');
+}
+
+[data-theme='dark'] {
+  --background: theme('colors.black');
+  --background-secondary: theme('colors.gray.800');
+
+  --accent-dark: theme('colors.fuchsia.900');
+  --accent-medium: theme('colors.fuchsia.700');
+  --accent-light: theme('colors.fuchsia.500');
+
+  --primary-dark: theme('colors.gray.300');
+  --primary-medium: theme('colors.gray.200');
+  --primary-light: theme('colors.gray.100');
+}
+
+[data-theme='emerald'] {
+  --background: theme('colors.white');
+
+  --accent-dark: theme('colors.emerald.900');
+  --accent-medium: theme('colors.emerald.700');
+  --accent-light: theme('colors.emerald.500');
+}
+
+[data-theme='pink'] {
+  --background: theme('colors.gray.900');
+  --background-secondary: theme('colors.gray.800');
+
+  --accent-dark: theme('colors.pink.900');
+  --accent-medium: theme('colors.pink.700');
+  --accent-light: theme('colors.pink.500');
+
+  --primary-dark: theme('colors.gray.300');
+  --primary-medium: theme('colors.gray.200');
+  --primary-light: theme('colors.gray.100');
+}
+```
+
+In the above, I'm using colours provided by Tailwind CSS. If I wanted to add custom colours I'd extend the tailwind.config.js and add them there ensuring our Tailwind CSS config remains the source of truth for our themes. The `:root` is essentially the light theme, notice how the other options match the themes array setup earlier.
+
+The tailwind.config.js should currently look like the following:
+
+```jsx
+// tailwind.config.js
+module.exports = {
+  purge: ['./pages/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
+  darkMode: false, // or 'media' or 'class'
+  theme: {
+    extend: {},
+  },
+  variants: {
+    extend: {},
+  },
+  plugins: [],
+};
+```
+
+In the theme section add the following to the extend key:
+
+```jsx
+theme: {
+    extend: {
+      colors: {
+        emerald: colors.emerald,
+        fuchsia: colors.fuchsia,
+        'th-background': 'var(--background)',
+        'th-background-secondary': 'var(--background-secondary)',
+        'th-foreground': 'var(--foreground)',
+        'th-primary-dark': 'var(--primary-dark)',
+        'th-primary-medium': 'var(--primary-medium)',
+        'th-primary-light': 'var(--primary-light)',
+        'th-accent-dark': 'var(--accent-dark)',
+        'th-accent-medium': 'var(--accent-medium)',
+        'th-accent-light': 'var(--accent-light)',
+      },
+    },
+  },
+```
+
+Initially, I'm just importing the colours emerald and fushia to ensure they are available in our global.css file.
+
+The important part is the additional colours added, for example, `'th-primary-dark': 'var(--primary-dark)'` - it references the CSS custom property we set up earlier. Tailwind CSS will add additional classes like `text-th-primary-dark`. This is how the magic happens when switching between the themes. If you recall the demo page included these classes:
+
+```html
+<p className="text-sm font-medium text-th-accent-medium">
+  <a href="#" className="hover:underline"> Video </a>
+</p>
+```
+
+When the website is first loaded next themes will set the theme attribute on the HTML element to light, `<html data-theme="light">` - if changed that will get updated to the selected theme `<html data-theme="pink">`. When this happens the underlying colour for our custom Tailwind CSS class will get updated and therefore change the colour scheme. The below video shows this in action:
+
+<video controls width="655" height="465">
+  <source src="/videos/blog/nextjs-tailwindcss-theming.vercel.app.mp4" type="video/mp4" />
+  Sorry, your browser doesn't support embedded videos.
+</video>
+
+If you haven't already run `npm run dev` in a terminal and visit http://localhost:3000 to see the above locally.
+
+Demo and final code can be found below:
+
+- Demo: [https://dlw-nextjs-tailwindcss-theming.vercel.app/](https://dlw-nextjs-tailwindcss-theming.vercel.app/)
+- Repo: [https://github.com/dwhiteGUK/dlw-nextjs-tailwindcss-theming](https://github.com/dwhiteGUK/dlw-nextjs-tailwindcss-theming)
+
+In the thread that inspired this blog post, [tailwindcss-theme-swapper](https://github.com/crswll/tailwindcss-theme-swapper) was mentioned. It looks like an interesting option and saves some of the boilerplate in getting setup.
+
+I'll be interested in any other options, and in particular approaches to naming conventions for custom classes/CSS custom properties. The latter could be problematic on larger websites and applications.
