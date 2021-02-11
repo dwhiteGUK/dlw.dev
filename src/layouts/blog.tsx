@@ -41,10 +41,12 @@ const BlogDetails = ({
   const customMeta = {
     title: `${title} - Darren White`,
     description: snippet,
-    image: `/images/blog/${image}`,
+    image: `https://darrenwhite.dev/images/blog/${image}`,
     date: postDate.toISOString(),
     type: 'article',
-  }
+  };
+
+  console.log(process.env.PUBLIC_URL)
 
   return (
     <AppShell customMeta={customMeta}>
