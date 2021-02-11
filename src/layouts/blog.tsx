@@ -13,6 +13,7 @@ type FrontMatter = {
   readingTime: {
     text: string;
   };
+  image: string;
 };
 
 const mdxComponents = {
@@ -23,7 +24,7 @@ const mdxComponents = {
 };
 
 const BlogDetails = ({
-  frontMatter: { title, snippet, timestamp, readingTime },
+  frontMatter: { title, snippet, timestamp, readingTime, image },
   children,
 }: {
   frontMatter: FrontMatter;
@@ -40,7 +41,7 @@ const BlogDetails = ({
   const customMeta = {
     title: `${title} - Darren White`,
     description: snippet,
-    image: '',
+    image: `/images/blog/${image}`,
     date: postDate.toISOString(),
     type: 'article',
   }
@@ -85,7 +86,7 @@ const BlogDetails = ({
             </svg>
             {readingTime.text}
           </div>
-        </div>
+        </div>        
         <MDXProvider components={mdxComponents}>
           <article className="prose dark:prose-dark mt-6">{children}</article>
         </MDXProvider>
