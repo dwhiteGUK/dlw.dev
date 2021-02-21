@@ -1,0 +1,76 @@
+---
+layout: blog
+title: How to trigger a Next.js rebuild from Strapi CMS
+timestamp: 1613896014000
+snippet: Triggering a website deployment on Vercel from Strapi CMS admin
+---
+
+For a recent proof of concept, I was setting up I needed to trigger a rebuild of the [Next.js](https://nextjs.org/) website hosted on [Vercel](https://vercel.com/home) when new content was added to the CMS ([Strapi](https://strapi.io/)). That way it could the website could be completely static with all content generated at build time.
+
+## Pre-requisites
+
+- Node (tested with v14)
+- NPM (tested with v7)
+- Next.JS website hosted on Vercel
+- Strapi CMS setup (my POC is hosted on [render](https://render.com/))
+
+## Vercel
+
+Once you have your website set on Vercel, navigate to the project overview and go to Settings > Git > Deploy Hooks:
+
+<FSImage
+  src="/images/blog/vercel-deploy-hooks-1.png"
+  alt="Empty Vercel deploy hook form"
+  width={1552}
+  height={640}
+  layout="intrinsic"
+  tabIndex="0"
+/>
+
+Add a hook name and which git branch you want to use. For the demo, I called mine **STRAPI** and the branch is **main**
+
+<FSImage
+  src="/images/blog/vercel-deploy-hooks-2.png"
+  alt="Filled in Vercel deploy hook form"
+  width={1552}
+  height={640}
+  layout="intrinsic"
+  tabIndex="0"
+/>
+
+Copy the URL of the webhook as we'll need that next.
+
+Now would be a good time to test the webhook works. Open up a terminal and use the following command with the correct webhook URL:
+
+```bash
+curl -X POST [https://api.vercel.com/v1/integrations/deploy/prj_5dly1cwH9o](https://api.vercel.com/v1/integrations/deploy/prj_5dly1cwH9oaHAY5w7a5qbLZVguwo/XCFGYg5rmY)............
+```
+
+If successful you'll get a response similar to the following:
+
+```json
+{
+  "job": {
+    "id": "XxvXRPVQJyM3IkDx8Vro",
+    "state": "PENDING",
+    "createdAt": 1613841281923
+  }
+}
+```
+
+## Strapi
+
+Now for the Strapi CMS side. Log into the Strapi Admin and navigate to Setting > Webhooks and click Add new webhook. Fill in the name, URL, and which events you'd like to trigger a re-build of the frontend website.
+
+<FSImage
+  src="/images/blog/strapi-webhook-2.png"
+  alt="Strapi CMS webhook form"
+  width={1552}
+  height={640}
+  layout="intrinsic"
+  tabIndex="0"
+/>
+
+Save the details and then test using the Trigger button at the top. I'd also test by adding or updating some content.
+
+Next, I'll look at setting up previews as not everybody adding content to the website will want to wait for a deployment to finish to see what the new content will look like.
