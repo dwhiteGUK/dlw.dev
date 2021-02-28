@@ -1,0 +1,76 @@
+---
+layout: blog
+title: Next.js - Replace React with Preact
+timestamp: 1614499198000
+snippet: Triggering a website deployment on Vercel from Strapi CMS admin
+image: preact-bundle-size.png
+---
+
+One option to increase performance in production is to replace React with Preact. I can't take credit for this as in my case, I got the idea and code from [https://leerob.io/](https://leerob.io/).
+
+Its' really simple to do, however a word of caution, this may not work if certain features of React are required in production. If you go down this route make sure you test fully before deploying to live.
+
+To get started if you haven't already, create a `next.config.js` and include the following code
+
+```jsx
+module.exports = {
+  webpack: (config, { dev, isServer }) => {
+    // Replace React with Preact only in client production build
+    if (!dev && !isServer) {
+      Object.assign(config.resolve.alias, {
+        react: 'preact/compat',
+        'react-dom/test-utils': 'preact/test-utils',
+        'react-dom': 'preact/compat',
+      });
+    }
+
+    return config;
+  },
+};
+```
+
+The above checks that we are in production and the webpack function is being executed on the client side.
+
+Don't forget to install Preact like i did, `yarn add preact` otherwise you'll get a build error for `Module not found: React`
+
+Run `yarn build` to see the bundle size. I ran that before and after the changes, as you can see in the below screenshot the js size is about half:
+
+**React**
+
+<FSImage
+  src="/images/blog/react-bundle-size.png"
+  alt="React bundle size"
+  width={696}
+  height={255}
+  layout="intrinsic"
+  tabIndex="0"
+/>
+
+**Preact**
+
+<FSImage
+  src="/images/blog/preact-bundle-size.png"
+  alt="Preact bundle size"
+  width={697}
+  height={250}
+  layout="intrinsic"
+  tabIndex="0"
+/>
+
+## Preact difference to React
+
+If you use the [preact-combat](https://github.com/preactjs/preact-compat) like in the example above then there is very little that isn't supported. For example, PropTypes are not supported in the core but are included in preact-combat.
+
+A full list of what is and isn't included or is different can be found on the Preact website: [https://preactjs.com/guide/v8/differences-to-react/](https://preactjs.com/guide/v8/differences-to-react/)
+
+## Resources
+
+**Repositories**
+
+- React: [https://github.com/dwhiteGUK/preact-bundle-test](https://github.com/dwhiteGUK/preact-bundle-test)
+- Preact: [https://github.com/dwhiteGUK/preact-bundle-test/tree/preact](https://github.com/dwhiteGUK/preact-bundle-test/tree/preact)
+
+**Demo**
+
+- React: [https://preact-bundle-test.vercel.app/](https://preact-bundle-test.vercel.app/)
+- Preact: [https://preact-bundle-test-7sh8vcshq-dwhite.vercel.app/](https://preact-bundle-test-7sh8vcshq-dwhite.vercel.app/)
