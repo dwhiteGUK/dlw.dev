@@ -21,7 +21,7 @@ const IntroHero: FC = () => {
           A web developer with 15+ years of experience. 
         </Heading1>
         <p className="mt-3 text-lg leading-7 text-gray-700 dark:text-gray-300">
-          I build websites using HTML, CSS and JavaScript, Often with React/Next.js.  
+          I build websites using HTML, CSS and JavaScript, often with React/Next.js.
         </p>
         <p className="mt-3 text-lg leading-7 text-gray-700 dark:text-gray-300">
           It's not just the front end, I can spin up services in AWS or a solution with Nodejs.
