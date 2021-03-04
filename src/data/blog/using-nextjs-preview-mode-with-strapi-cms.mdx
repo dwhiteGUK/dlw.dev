@@ -1,0 +1,278 @@
+---
+layout: blog
+title: Using Next.js Preview mode with Strapi CMS
+timestamp: 1614853726063
+snippet: Enabling draft previews when using Strapi as a headless CMS with Next.js
+image: cover-nextjs-strapi-preview.png
+---
+
+This article is a loose continuation of '[How to trigger a Next.js rebuild from Strapi CMS](https://darrenwhite.dev/blog/trigger-nextjs-build-from-strapi-cms)' - as the website is statically generated any content being added through the Strapi CMS cannot be viewed as the relevant static page doesn't exist. For example the following news post exists [https://poc-strapi-nextjs-frontend.vercel.app/news/1](https://poc-strapi-nextjs-frontend.vercel.app/news/1) but if you try [https://poc-strapi-nextjs-frontend.vercel.app/news/4](https://poc-strapi-nextjs-frontend.vercel.app/news/4) you should get a '404 | This page could not be found.'.
+
+To give any content editors a better experience I wanted to take advantage of Next.js [preview mode](https://nextjs.org/docs/advanced-features/preview-mode) with a link in the CMS:
+
+<Image
+  src="/images/blog/strapi-cms-page-preview.png"
+  alt="View page preview button in Strapi CMS"
+  width={236}
+  height={145}
+  layout="intrinsic"
+  tabIndex="0"
+/>
+
+## Pre-requisites
+
+- Node (tested with v14)
+- NPM (tested with v7)
+- Next.JS website hosted on Vercel
+- Strapi CMS setup (my POC is hosted on [render](https://render.com/))
+
+## Next.js
+
+### Preview API
+
+Within Next.js we need to add a API route, if you haven't used one before then have a read up of [API routes on the Next.js docs](https://nextjs.org/docs/api-routes/introduction).
+
+First add a `.env` file, I have one for local and prodcution:
+
+- .env.development.local
+- .env.production.local
+
+In there add a secret:
+
+```bash
+STRAPI_PREVIEW_SECRET=*******************
+```
+
+We use the secret to compare with the one sent from the CMS.
+
+Next, in `/pages/api` add a new page called `preview.js` (the name can be anything you want - just make sure you change the relevant URL's when calling it).
+
+```jsx
+export default async (req, res) => {
+  // Check the secret and next parameters
+  // This secret should only be known to this API route and the CMS
+  if (req.query.secret !== process.env.STRAPI_PREVIEW_SECRET || !req.query.id) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+
+  // Enable Preview Mode by setting the cookies
+  res.setPreviewData({});
+
+  // Redirect to the path from the fetched post
+  // We don't redirect to req.query.slug as that might lead to open redirect vulnerabilities
+  res.redirect(307, `/news/${req.query.id}`);
+};
+```
+
+Add the code above. First we check the Next.js secret matches the one from the CMS.
+
+```jsx
+if (req.query.secret !== process.env.STRAPI_PREVIEW_SECRET || !req.query.id) {
+  return res.status(401).json({ message: 'Invalid token' });
+}
+```
+
+Next.js loads anything in the `.env` into the request object. Now check there is a id. I'm using id for now, however in a real world application/website I'd use a slug like the Next.js docs example uses. If either of these checks fails the response fails with a 401.
+
+`res.setPreviewData({})` allows us to pass any data. It's worth noting that
+
+> because the data will be stored in a cookie, there’s a size limitation. Currently, preview data is limited to 2KB".
+
+I tried to pass the entire post object which failed due to the above limit. Its always worth reading the documentation properly 😂
+
+The last bit of code `res.redirect(307, `/news/${req.query.id}`)` redirects to the correct path with the relevant cookies set. In a real world scenario I wouldn't hard code the /news/ pathname and have that be dynamic in some way to cater for different pathnames/content.
+
+You can test you can call the URL using `https://<your-site>/api/preview?secret=<token>&id=<id>`
+
+### Modify post page
+
+In my test website I have dynamic route `/pages/news/[id].js` for displaying the articles. I won't go through each line of code but just discuss the small changes I made to enable preview mode.
+
+In `/pages/news/[id].js` I added a preview argument which I pass to my `getNewsItem` function
+
+```jsx
+//pages/news/[id].js
+export async function getStaticProps(context) {
+  const { params, preview } = context;
+  const item = await getNewsItem(params.id, preview);
+
+  if (!item) {
+    return { notFound: true };
+  }
+
+  const mdxSource = await renderToString(item?.Body ?? '');
+
+  return {
+    props: {
+      item: {
+        ...item,
+        mdxSource,
+      },
+      preview: preview ? true : null,
+    },
+  };
+}
+```
+
+With that in place I can check for the argument and append the query variable to the URL. `?_publicationState=preview` is specific to Strapi, it would need modifying for other headless CMS's.
+
+```jsx
+// lib/news.js
+const getNewsItem = async (id, preview = false) => {
+  try {
+    // check for preview mode, add required query parameter if we are in preview mode
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/news-items/${id}${preview ? '?_publicationState=preview' : ''}`,
+    );
+
+    if (res.status !== 200) {
+      throw new Error('Error retrieving news item');
+    }
+
+    const data = await res.json();
+
+    return data;
+  } catch (e) {
+    console.error(e.name + ': ' + e.message);
+  }
+};
+
+export { getNewsItem };
+```
+
+If you try to access the news item directly (e.g. [https://poc-strapi-nextjs-frontend.vercel.app/news/99](https://poc-strapi-nextjs-frontend.vercel.app/news/99)) without the cookies set Strapi will return a 500 error therefore I check the status:
+
+```jsx
+if (res.status !== 200) {
+  throw new Error('Error retrieving news item');
+}
+```
+
+And throw an error. The dynamic route `/pages/news/[id].js` will end up with undefined for the item:
+
+```jsx
+if (!item) {
+  return { notFound: true };
+}
+```
+
+In this case a 404 is shown on the website.
+
+That's as much as we need for the front end. There is an optional step below for exiting preview mode.
+
+### Exit Preview Mode
+
+By default the preview mode as no experation date, it ends when the session ends (browser closes). To manually end, add a new API route called `exit-preview.js` :
+
+```jsx
+// pages/api/exit-preview.js
+export default function handler(req, res) {
+  // Clears the preview mode cookies.
+  // This function accepts no arguments.
+  res.clearPreviewData();
+
+  resolve(true);
+}
+```
+
+Calling `clearPreviewData` will clear any preview cookies. Back in `pages/news/[id].js` add a button with a click handler
+
+```bash
+<button onClick={() => exitPreviewMode()}> turn off</button>
+```
+
+I've got a nice banner with a text button but I'll leave the actual UI implementation to you
+
+<Image
+  src="/images/blog/nextjs-exit-preview-mode-banner.png"
+  alt="Next.js preview mode notification"
+  width={905}
+  height={48}
+  layout="intrinsic"
+  tabIndex="0"
+/>
+
+The `exitPreviewMode` calls the API endpoint. I envisage a scenario whereby the content editor will click the link from the CMS hence `window.close()` to close the window/tab and take the content editor back to the CMS.
+
+```jsx
+async function exitPreviewMode() {
+  const res = await fetch('/api/exit-preview').catch((err) => console.error(err));
+
+  if (res) {
+    window.close();
+  }
+}
+```
+
+### Production
+
+In production I am hosting the website on [Vercel](https://vercel.com/), any environment variables will need adding into the hosting environment.
+
+## Strapi
+
+The Srapi side is a little less clear for me as I'm not as comfortable on that side. Also, I couldn't seem to find much documentation on enabling preview mode. After much trial and error, I managed to get it working using the following resources:
+
+- [https://github.com/strapi/strapi-template-corporate/issues/1](https://github.com/strapi/strapi-template-corporate/issues/1)
+- [https://github.com/strapi/strapi-starter-next-corporate/tree/97d6903eab28af4a14f9f605f48a289175e36f4a/backend/extensions](https://github.com/strapi/strapi-starter-next-corporate/tree/97d6903eab28af4a14f9f605f48a289175e36f4a/backend/extensions)
+
+Locally, add a `.env` file in the root
+
+```bash
+FRONTEND_PREVIEW_SECRET=*********
+FRONTEND_URL=http://localhost:3000
+```
+
+The secret needs to match the one set in Next.js (STRAPI_PREVIEW_SECRET). The FRONTEND_URL is the next.js local development hostname.
+
+As per the issue on GitHub [https://github.com/strapi/strapi-template-corporate/issues/1](https://github.com/strapi/strapi-template-corporate/issues/1) create the following directories `content-manager/admin/src` into the `/extensions` directory making sure to add the content from `content-manager/admin/src`
+
+In `/extensions/content-manager/admin/src/InjectedComponents/PreviewURL/index.js` I edited the PreviewUrl function from the one of Github changing the URL to use the id
+
+```jsx
+// extensions/content-manager/admin/src/InjectedComponents/PreviewURL/index.js
+
+// if (slug !== "application::page.page" || id === "create") {
+//   return null;
+// }
+// Build the right preview URL based on the page status
+const previewURL = `${FRONTEND_URL}/api/preview?secret=${FRONTEND_PREVIEW_SECRET}&id=${id}`;
+```
+
+The commented-out code allows draft posts to be previewed irrespective of publishing state and in the future, I'd also like editors to be able to preview pages therefore I've also removed this check `slug !== "application::page.page"` .
+
+The big thing that caught me out is I had to modify the Webpack config and push in the environment variables
+
+```jsx
+// admin/admin.config.js
+module.exports = {
+  webpack: (config, webpack) => {
+    // Note: we provide webpack above so you should not `require` it
+    // Perform customizations to webpack config
+    // Important: return the modified config
+
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        FRONTEND_URL: JSON.stringify(process.env.FRONTEND_URL || 'http://localhost:3000'),
+        FRONTEND_PREVIEW_SECRET: JSON.stringify(process.env.FRONTEND_PREVIEW_SECRET || 'secret-token'),
+      }),
+    );
+
+    return config;
+  },
+};
+```
+
+I honestly don't know why that works, I spent several frustrating hours trying to get the preview to work. Until I added the above (and rebuilt the admin) the preview button wouldn't show in the CMS admin. I'll need to spend some time researching custom extensions/plugins building some for Strapi to understand whats's going on.
+
+Going back to building the admin, for any changes to take effect, the admin needs to be rebuilt by running `npm run build` in the root of strapi.
+
+### Production
+
+In production I'm hosting with [render](https://render.com/), through their dashboard I've added the `FRONTEND_URL` and `FRONTEND_PREVIEW_SECRET` . The secret matches the one added to Vercel with teh URL matching the deployed website URL on vercerl.
+
+**Repositories**
+
+- [https://github.com/dwhiteGUK/poc-strapi-nextjs-frontend](https://github.com/dwhiteGUK/poc-strapi-nextjs-frontend)
+- [https://github.com/dwhiteGUK/poc-strapi-backend](https://github.com/dwhiteGUK/poc-strapi-backend)
+
+**Website:** [https://poc-strapi-nextjs-frontend.vercel.app/](https://poc-strapi-nextjs-frontend.vercel.app/)
