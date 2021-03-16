@@ -1,0 +1,366 @@
+---
+layout: blog
+title: Custom UI for Amplify and Next.js website with React Hook Form, Next.js, Tailwind CSS
+timestamp: 1615884349829
+snippet: Replacing the AWS Amplify hosted UI with a custom solution
+image: cover-ui-amplify-nextjs.png
+---
+
+The first part of this tutorial regarding setting up Amplify is from the excellent Nader Dabits tutorial ["The Complete Guide to Next.js Authentication"](https://dev.to/dabit3/the-complete-guide-to-next-js-authentication-2aco). If you want something more in-depth and/or a [video walkthrough](https://www.youtube.com/watch?v=S25rmxiOBz4&t=2s) I would suggest checking out his material.
+
+My tutorial will take Nader's setup and bring in [React hook form](https://react-hook-form.com/) and [Tailwind CSS](https://tailwindcss.com/) to create custom UI elements to handle register, confirmation and sign-up.
+
+## Amplify setup
+
+1. Create next app `npx create-next-app next-authentication` 
+2. Install dependencies `yarn add aws-amplify @aws-amplify/ui-react`
+3. Initialise amplify `amplify init` - I just picked the defaults
+    - The profile needs AdministratorAccess
+
+4. Add the authentication service `amplify add auth` - again pick the defaults
+5. Deploy the authentication service `amplify push --y`
+
+## Tailwind CSS - *optional*
+
+For the forms styling etc. I'll be using Tailwind CSS. This is completely optional and feel free to use whatever works for you. If you use Tailwind CSS then the installation guide on the official docs is great: [https://tailwindcss.com/docs/guides/nextjs](https://tailwindcss.com/docs/guides/nextjs).
+
+## Home page setup
+
+The home page will show the relevant component dependent on the status. To begin add the following to **index.js**  in the **pages** directory:
+
+```jsx
+import { useState } from 'react'
+import Head from 'next/head'
+
+import Register from '../components/register'
+import SignIn from '../components/sign-in'
+import Confirm from '../components/confirm'
+
+export default function Home() {
+  const [status, setStatus] = useState('sign-in')
+  const [user, setUser] = useState(null)
+
+  return (
+    <div>
+      <Head>
+        <title>Authentication with Amplify, React Hook form and Tailwind CSS</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <main>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8">
+            <div>
+              <img className="mx-auto h-12 w-auto" src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg" alt="Workflow" />
+              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Example Amplify Register
+              </h2>
+            </div>
+
+            {status === 'sign-in' ? <SignIn setStatus={setStatus} /> : null}
+            {status === 'register' ? <Register setStatus={setStatus} setUser={setUser} /> : null}
+            {status === 'confirm' ? <Confirm setStatus={setStatus} user={user} /> : null}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
+```
+
+The imortant parts is the useState hook `const [status, setStatus] = useState('sign-in')` for setting which form component to show:
+
+```jsx
+{status === 'sign-in' ? <SignIn setStatus={setStatus} /> : null}
+{status === 'register' ? <Register setStatus={setStatus} setUser={setUser} /> : null}
+{status === 'confirm' ? <Confirm setStatus={setStatus} user={user} /> : null}
+```
+
+And the `const [user, setUser] = useState(null)` for storing the user's details which the confirmation component will need. 
+
+By default the status is **sign-in,** however, we can't sign in until we create a user therefore we'll focus on the register and confirmation flow first.
+
+## React Hook Form
+
+For the forms I'll be using React Hook Form as the hooks it provides make it super simpler to get a form up and running.
+
+To begin, install the dependency `yarn add react-hook-form` and add the import: `import { useForm } from "react-hook-form";` to **index.js** 
+
+### Register
+
+Add a new component called **components/register.js** adding the **useForm** hook and for now, add a register function that will just console log our data. Later that will be updated to use the [Auth Class](https://docs.amplify.aws/lib/auth/emailpassword/q/platform/js) from Amplify.
+
+ 
+
+```jsx
+// src/pages/index.js
+const { handleSubmit } = useForm();
+
+async function signUp({ email, username, password }) {
+  console.log(email, username, password)
+}
+```
+
+Before submitting the form, the `<form>` element needs an onSubmit attribute which calls the above register function:
+
+```jsx
+<form className="mt-8 space-y-6" onSubmit={handleSubmit(signUp)}>
+```
+
+If you haven't already run the development server `yarn dev` and go to [`http://localhost:3000/register`](http://localhost:3000/register). Submitting the form results in **undefined** for our form inputs values as we need to add **refs** to the input fields.
+
+For this update the username and password field adding `ref={register}`, the updated username address field will be as follows:
+
+```jsx
+<input ref={register} id="username" name="username" type="username" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Username" />
+```
+
+Make sure to pull in **register** from the useForm hook `const { register, handleSubmit } = useForm();`. Now submitting the form will result in values for the input fields.
+
+**Add Amplify Sign-Up**
+
+To hook up the sign-up form with Amplify add the Auth import: `import { Auth } from 'aws-amplify';`. Replace the **signUp** function with the following:
+
+```jsx
+async function signUp({ email, username, password }) {
+  try {
+    const { user } = await Auth.signUp({
+      username,
+      password,
+      attributes: {
+        email, // optional but not in this case as MFA/Verification code wil be emailed
+      }
+    });
+
+    setStatus('confirm')
+    setUser({
+      username: username,
+      password: password,
+    })
+
+  } catch (error) {
+    console.log('error signing up:', error);
+  }
+}
+```
+
+I'm storing the user's username and password temporally for a smoother registration flow. It was pointed out to me this could be a security risk. I feel storing it temporarily is ok, however, you can always tweak the registration flow to require login after confirmation. This issue is discussed in detail on an open issue on GitHub: [https://github.com/aws-amplify/amplify-js/issues/6320](https://github.com/aws-amplify/amplify-js/issues/6320) - the hosted UI doesn't have this drawback
+
+The complete register code is below:
+
+```jsx
+import { Auth } from 'aws-amplify';
+import { useForm } from "react-hook-form";
+export default function Register({ setStatus, setUser }) {
+  const { register, handleSubmit } = useForm();
+
+  async function signUp({ email, username, password }) {
+    try {
+      await Auth.signUp({
+        username,
+        password,
+        attributes: {
+          email, // optional but not in this case as MFA/Verification code wil be emailed
+        }
+      });
+
+      setStatus('confirm')
+      setUser({
+        username: username,
+        password: password,
+      })
+
+    } catch (error) {
+      console.log('error signing up:', error);
+    }
+  }
+
+  return (
+    <form className="mt-8 space-y-6" onSubmit={handleSubmit(signUp)}>
+      <input type="hidden" name="remember" value="true" />
+      <div className="rounded-md shadow-sm -space-y-px">
+        <div>
+          <label htmlFor="email-address" className="sr-only">Email address</label>
+          <input ref={register} id="email-address" name="email" type="email" autoComplete="email" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Email address" />
+        </div>
+        <div>
+          <label htmlFor="username" className="sr-only">Username</label>
+          <input ref={register} id="username" name="username" type="username" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Username" />
+        </div>
+        <div>
+          <label htmlFor="password" className="sr-only">Password</label>
+          <input ref={register} id="password" name="password" type="password" autoComplete="current-password" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Password" />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end">
+        <div className="text-sm">
+          <button
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+            onClick={() => setStatus('sign-in')}
+          >
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+            <svg className="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+          </span>
+            Register
+          </button>
+      </div>
+    </form>
+  )
+}
+```
+
+### Confirm Sign-Up
+
+The default Amplify setup requires MFA therefore before being able to sign in, the user must enter the verification code. 
+
+For that, add new component called **components/confirm.js** with the following:
+
+```jsx
+import { Auth } from 'aws-amplify';
+import { useForm } from "react-hook-form";
+import { useRouter } from 'next/router'
+export default function Register({ user }) {
+  const { register, handleSubmit } = useForm();
+  const router = useRouter()
+
+  async function confirmSignUp({ code }) {
+    try {
+      await Auth.confirmSignUp(user.username, code);
+
+      await Auth.signIn(user.username, user.password);
+
+      router.push('/client-protected')
+    } catch (error) {
+      console.log('error confirming sign up', error);
+    }
+  }
+
+  return (
+    <form className="mt-8 space-y-6" onSubmit={handleSubmit(confirmSignUp)}>
+      <input type="hidden" name="remember" value="true" />
+      <div className="rounded-md shadow-sm -space-y-px">
+        <div>
+          <label htmlFor="code" className="sr-only">Code</label>
+          <input ref={register} id="code" name="code" type="number" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Enter verification code" />
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+            <svg className="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+          </span>
+            Confirm
+          </button>
+      </div>
+    </form>
+  )
+}
+```
+
+As with the register component, we need the **Auth class** and **useForm** hook. In addition, we import the **useRouter** hook from next. This will be used to redirect the user once they successfully enter the verification code
+
+```jsx
+import { Auth } from 'aws-amplify';
+import { useForm } from "react-hook-form";
+import { useRouter } from 'next/router'
+```
+
+For the useRouter hook we initialise a router variable `const router = useRouter()` , the router is then used in the confirmSignUp function:
+
+```jsx
+async function confirmSignUp({ code }) {
+  try {
+    await Auth.confirmSignUp(user.username, code);
+
+    await Auth.signIn(user.username, user.password);
+
+    router.push('/client-protected')
+  } catch (error) {
+    console.log('error confirming sign up', error);
+  }
+}
+```
+
+The above uses the Auth class from Amplify, notice how the destructured user prop is used to pass the username plus the entered code to the confirmSignUp method. If successful I automatically sign the user in. 
+
+As mentioned earlier if the username and password aren't stored then the flow will need updating to factor this in. The user would need some way to get back to the confirmation/verification form which this setup doesn't currently handle.
+
+### Sign In
+
+Sign in is very similar to the other forms, we need the Auth class, useRouter and useForm hooks. The complete code is: 
+
+```jsx
+import { useRouter } from 'next/router'
+import { Auth } from 'aws-amplify';
+import { useForm } from "react-hook-form";
+
+export default function SignIn({ setStatus }) {
+  const { register, handleSubmit } = useForm();
+  const router = useRouter()
+
+  async function signIn({ username, password }) {
+    try {
+      await Auth.signIn(username, password);
+
+      router.push('/client-protected')
+    } catch (error) {
+      console.log('error signing in', error);
+    }
+  }
+
+  return (
+
+    <form className="mt-8 space-y-6" onSubmit={handleSubmit(signIn)}>
+      <input type="hidden" name="remember" value="true" />
+      <div className="rounded-md shadow-sm -space-y-px">
+        <div>
+          <label htmlFor="username" className="sr-only">Username</label>
+          <input ref={register} id="username" name="username" type="username" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Username" />
+        </div>
+        <div>
+          <label htmlFor="password" className="sr-only">Password</label>
+          <input ref={register} id="password" name="password" type="password" autoComplete="current-password" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Password" />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end">
+        <div className="text-sm">
+          <button
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+            onClick={() => setStatus('register')}
+          >
+            Sign up for an account
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+            <svg className="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+          </span>
+          Sign in
+        </button>
+      </div>
+    </form>
+  )
+}
+```
+
+## Summary
+
+The process of putting this together highlights how quick the hosted solution is and for most cases, this would probably be an adequate solution. The Auth classes from AWS Amplify are very good with the exception of not being able to automatically sign in after verification. I think this may be a major drawback for some.
