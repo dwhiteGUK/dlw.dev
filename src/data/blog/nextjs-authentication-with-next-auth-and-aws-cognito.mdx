@@ -1,0 +1,356 @@
+---
+layout: blog
+title: Next.js authentication with Next Auth and AWS Cognito
+timestamp: 1616521488531
+snippet: Using NextAuth.js to add AWS Cognito authentication to a Next.js website
+image: cover-nextaiuthjs-awscognito-nextjs.png
+---
+
+After my last post [Custom Authentication UI for Amplify and Next.js website with React Hook Form, Next.js, Tailwind CSS](https://darrenwhite.dev/blog/custom-ui-amplify-nextjs) I had wanted to try [NextAuth.js](https://next-auth.js.org/)
+
+To begin, I removed all uses of the AWS Amplify Auth class. I had intended to do a custom UI, however, it seems currently you can only use the hosted UI when using NextAuth.js (unless you are doing a custom provider [https://next-auth.js.org/providers/credentials#example-ui](https://next-auth.js.org/providers/credentials#example-ui)). Which makes sense as it's supposed to be drop-in authentication for your app/website. However, please correct me if I'm wrong.
+
+## Amazon Cognito
+
+The authentication flow will need an Amazon Cognito user pool.  Follow the steps below to add one if you don't have one already set up: 
+
+  1. Log into [http://console.aws.amazon.com/](http://console.aws.amazon.com/) and click **Manage User Pools**
+
+    <Image
+      src="/images/blog/manage-user-ppol.png"
+      alt="Manage user pools screen grab"
+      width={627}
+      height={233}
+      layout="intrinsic"
+      tabIndex="0"
+    />
+  
+  2. Click 'Create a user pool', mine is in the top right as I already have user pools set up. 
+
+    <Image
+      src="/images/blog/create-user-pool.png"
+      alt="Create a user pool button screen grab"
+      width={355}
+      height={103}
+      layout="intrinsic"
+      tabIndex="0"
+    />    
+  
+  3. Enter the pool name and select Review Defaults  *-feel free to step through but for this case, we just need to change a few defaults*
+
+    <Image
+      src="/images/blog/review-defaults.png"
+      alt="Review default screen grab"
+      width={360}
+      height={165}
+      layout="intrinsic"
+      tabIndex="0"
+    /> 
+  
+  4. **Important:** select Add app client - this will contain the details required to hook the client up to the authentication service
+
+    <Image
+      src="/images/blog/add-app-client.png"
+      alt="Review default screen grab"
+      width={654}
+      height={52}
+      layout="intrinsic"
+      tabIndex="0"
+    /> 
+
+    And click 'Add an app client'
+  
+  5. Ensure you enter a **App client name** and  **Generate client secret** is checked
+    
+    <Image
+      src="/images/blog/appl-client-settings.png"
+      alt="add app client screen grab"
+      width={627}
+      height={404}
+      layout="intrinsic"
+      tabIndex="0"
+    /> 
+  
+  6. Select **Return to pool details**
+  7. Click '**Create pool'**
+
+    <Image
+      src="/images/blog/create-pool.png"
+      alt="Create pool button screen grab"
+      width={145}
+      height={60}
+      layout="intrinsic"
+      tabIndex="0"
+    /> 
+  
+  8. Now we need to setup a domain, select '**Domain name'**  from the left hand menu. 
+    1. Enter a domain name - 
+    2. Check availability 
+    3. Save the domain name as we'll need it later
+    4. Click 'Save changes'
+  
+    <Image
+      src="/images/blog/domain-name-setup.png"
+      alt="Domain name setup screen grab"
+      width={627}
+      height={367}
+      layout="intrinsic"
+      tabIndex="0"
+    /> 
+  
+  9. Almost there 😓, select App client settings
+      1. Check **Cognito User Pool**
+      2. Add a Callback URL, for local development that would be     [http://localhost:3000/api/auth/callback/cognito](http://localhost:3000/api/auth/callback/cognito) 
+      3. Check **Authorization code grant** 
+      4. And the following **Allowed oAuth Scopes:** Email, openid and profile
+      5. And **Save changes** 
+
+    <Image
+      src="/images/blog/appl-client-settings.png"
+      alt="Enable identity providers screen grab"
+      width={627}
+      height={451}
+      layout="intrinsic"
+      tabIndex="0"
+    />
+
+That's all the setup needed, one final step is to get the relevant .env variables required for NextAuth.js. Go back to **App clients** on the left menu, make a note of the **App client id.** Select **Show Details** and make a more of the **App client secret.**
+
+## NextAuth.js
+
+Now for the fun part. In an existing or new project install the NextAuth.js dependency:
+
+```bash
+yarn add next-auth
+// or
+npm install next-auth
+```
+
+### .env
+
+Before adding any js lets get the environment variables setup. Add a `.env.local` file in the root of the project
+
+```bash
+COGNITO_CLIENT_ID=*App client id*
+COGNITO_CLIENT_SECRET=*App client secret*
+COGNITO_DOMAIN=*Domain name*
+```
+
+Replace with the id, secret and domain we set up previously
+
+These details can be found by logging into  and going to Cognito > Manage user pools 
+
+### API Route
+
+As per the [documentation](https://next-auth.js.org/getting-started/example) add a file called `[...nextauth].js` in `pages/api/auth`. 
+
+```jsx
+import NextAuth from 'next-auth'
+import Providers from 'next-auth/providers'
+
+export default NextAuth({
+  providers: [
+    Providers.Cognito({
+      clientId: process.env.COGNITO_CLIENT_ID,
+      clientSecret: process.env.COGNITO_CLIENT_SECRET,
+      domain: process.env.COGNITO_DOMAIN,
+    })
+  ],
+  debug: process.env.NODE_ENV === 'development' ? true : false
+})
+```
+
+We supply NextAuth with a host of providers, which I've added the cognito details. Adding debug for development mode enables various logs in the terminal. Useful if there are any issues and seeing the key-value pairs for the signed-in user.
+
+Now any requests to `api/auth/*` will be handle by NextAuth, for example sign in, sign out etc). 
+
+### Use NextAuth hook
+
+Inside `pages/index.js` replace all code with the following:
+
+```jsx
+import Head from 'next/head'
+import Link from 'next/link'
+import { signIn, signOut, useSession } from 'next-auth/client'
+
+export default function Home() {
+  const [session, loading] = useSession()
+
+  return (
+    <div>
+      <Head>
+        <title>Authentication with NextAuth and AWS Cognito</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <main>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8 flex items-center flex-col">
+            <a>
+              <div className="flex-shrink-0 flex items-center bg-orange-500 h-20 w-20 border-radius p-2 font-bold text-4xl">
+                dlw
+              </div>
+            </a>
+
+            {!session &&
+              <>
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                  Example NextAuth Sign In
+                </h2>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center w-1/2 mt-12 rounded-md border border-transparent px-5 py-3 bg-gray-900 text-base font-medium text-white shadow hover:bg-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-rose-500 sm:px-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  onClick={() => signIn('cognito', {
+                    callbackUrl: `${window.location.origin}/protected`
+                  })}
+                >
+                  Sign In
+                </button>
+              </>
+            }
+
+            {session &&
+              <>
+                <h1 className="my-6 text-center text-3xl font-extrabold text-gray-900">
+                  Welcome, {session.user.name ?? session.user.email}
+                </h1>
+                <nav>
+                  <Link href="/protected">
+                    <a className="text-orange-500 hover:bg-black hover:text-white">Protected Page</a>
+                  </Link>
+                </nav>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center w-1/2 mt-12 rounded-md border border-transparent px-5 py-3 bg-gray-900 text-base font-medium text-white shadow hover:bg-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-rose-500 sm:px-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  onClick={() => signOut({
+                    callbackUrl: `${window.location.origin}`
+                  })}
+                >
+                  Sign Out
+                </button>
+              </>
+            }
+
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
+```
+
+The **useSession** hook is the simplest way to check the logged-in state. if the user isn't logged in show a Sign in button with a click handler:
+
+```jsx
+onClick={() => signIn('cognito', {
+  callbackUrl: `${window.location.origin}/client-protected`
+})}
+```
+
+I've added **cognito** as the first argument which ensures the user is shown the Cognito hosted UI when clicking the sign-in button. The **callbackUrl** will redirect to a protected page
+
+At this point, we can test the sign-up or sign in. Run the development server `yarn run dev` and go to [http://localhost:3000/](http://localhost:3000/). if you select **Sign in** you should be able to log in with an existing account or sign up for a new account. 
+
+### Session Provider
+
+In a multi-page application, we'll want to add the session provider. This ensure session state can be shared between pages:
+
+> which improves performance, reduces network traffic and avoids component state changes while rendering -
+
+Update `pages/_app.js` : 
+
+```jsx
+import { Provider } from 'next-auth/client'
+import "tailwindcss/tailwind.css";
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <Provider session={pageProps.session}>
+      <Component {...pageProps} />
+    </Provider>
+  )
+}
+
+export default MyApp
+```
+
+Adding the **Provider** import `import { Provider } from 'next-auth/client'` and wrapping the main app component in the **Provider** component:
+
+```jsx
+    <Provider session={pageProps.session}>
+      <Component {...pageProps} />
+    </Provider>
+```
+
+Once logged in you'll be re
+
+## Protected Page
+
+For the protected page, add a new page called `protected.js` inside /pages directory (the actual page name isn't important):
+
+```jsx
+import Head from 'next/head'
+import Link from 'next/link'
+import { getSession } from 'next-auth/client'
+
+function Protected() {
+
+  return (
+    <div>
+      <Head>
+        <title>Authentication with NextAuth and AWS Cognito</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <main>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8  flex items-center flex-col">
+            <a>
+              <div className="flex-shrink-0 flex items-center bg-orange-500 h-20 w-20 border-radius p-2 font-bold text-4xl">
+                dlw
+              </div>
+            </a>
+            <h1 className="my-6 text-center text-3xl font-extrabold text-gray-900">Client Protected</h1>
+            <nav>
+              <Link href="/">
+                <a className="text-orange-500 hover:bg-black hover:text-white">Home</a>
+              </Link>
+            </nav>
+            <div className="prose">
+              <p>Faucibus commodo massa rhoncus, volutpat. <strong>Dignissim</strong> sed <strong>eget risus enim</strong>. Mattis mauris semper sed amet vitae sed turpis id. Id dolor praesent donec est. Odio penatibus risus viverra tellus varius sit neque erat velit. Faucibus commodo massa rhoncus, volutpat. Dignissim sed eget risus enim. <a href="#">Mattis mauris semper</a> sed amet vitae sed turpis id.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+export default Protected
+
+export async function getServerSideProps(context) {
+  const { res } = context;
+  const session = await getSession(context)
+
+  if (!session) {
+    res.writeHead(302, {
+      Location: "/",
+    });
+    return res.end();
+  }
+
+  return {
+    props: { session }
+  }
+}
+```
+
+The important part is inside the **getServerSideProps** which checks for a [session](https://next-auth.js.org/getting-started/client#getsession) and if isn't available redirects to the index page with the sign-in button.
+
+Repository: [https://github.com/dwhiteGUK/dlw-next-auth-cognito](https://github.com/dwhiteGUK/dlw-next-auth-cognito)
+
+## Deploying to production
+
+Before deploying to production we need to add a `NEXTAUTH_URL` to our environment variables. Plus the previous environment variables will need adding to production environment
+
+On Vercel were I host most of my Next.js websites they are added in the settings for the project.
