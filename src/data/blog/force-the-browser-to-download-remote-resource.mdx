@@ -1,0 +1,117 @@
+---
+layout: blog
+title: How to force the browser to download remote resource
+timestamp: 1617613502792
+snippet: The anchor download property and how to download remote resources
+image: cover-force-download-remote-resources.png
+---
+
+In a recent project, I needed to offer the ability to download files. Until recently I wasn't aware of the [HTMLAnchorElement.download](https://developer.mozilla.org/en-US/docs/Web/API/HTMLAnchorElement/download) property. I'll explain how to use the download property and why this wouldn't work for my situation. 
+
+First though, here is a link to the repository and demo:
+
+- **Demo**: [https://angry-bartik-1544f6.netlify.app/](https://angry-bartik-1544f6.netlify.app/)
+- **Repo**: [https://github.com/dwhiteGUK/dlw-download-demo](https://github.com/dwhiteGUK/dlw-download-demo)
+
+## Using  the HTML5 download property
+
+By default, anchor elements will navigate to the href element. You can add the download property which will prompt the browser to download the file:
+
+```html
+<a download href="https://darrenwhite.dev/images/john-fowler-d2YMQ-hZ3og-unsplash.jpg">
+  Download image
+</a>
+```
+
+However, images and also Firefox only allows users to download files of the same origin. As the files for my project would be served from a different origin I would need a way to force the download.
+
+## Using fetch to download
+
+My solution was to use fetch to get the remote resource: 
+
+```jsx
+const file = await fetch(*URL_TO_REMOTE_RESOURCE*);
+
+const blob = await file.blob();
+const url = URL.createObjectURL(blob);
+```
+
+Once the resource is downloaded, create an anchor element with the download and trigger the click event:
+
+```jsx
+const downloadLink = document.createElement("a");
+
+downloadLink.href = linkSource;
+downloadLink.download = [download name];
+downloadLink.click();
+```
+
+Here's the complete code:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dlw download as data demo</title>
+    <link rel="stylesheet" href="./build/tailwind.css" />
+  </head>
+  <body class="bg-gray-900 h-full">
+    <main class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto flex flex-col items-center space-y-2">
+        <div class="aspect-w-3 aspect-h-2 w-96">
+          <img 
+            class="object-fill shadow-lg rounded-lg"
+            src="https://darrenwhite.dev/images/john-fowler-d2YMQ-hZ3og-unsplash.jpg"
+            alt="Star shot in Cathedral Valley State Park, Nevada"
+          >
+        </div>
+        <a
+          href="https://darrenwhite.dev/images/john-fowler-d2YMQ-hZ3og-unsplash.jpg"
+          class="inline-flex items-center mt-4 px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+          data-remote
+        >
+          Remote
+          <svg
+            class="ml-2 w-6 h-6"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+        </a>
+      <div>
+    </main>
+
+    <script defer type="text/javascript">
+      const a = document.querySelector('a[data-remote]')
+
+      a.addEventListener('click', async (e) => {
+        e.preventDefault()
+
+        const file = await fetch(e.target.href);
+
+        const blob = await file.blob();
+
+        const blobUrl = URL.createObjectURL(blob);
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = blobUrl;
+        downloadLink.download = 'download-example.jpg';
+
+        downloadLink.click();
+      })
+    </script>
+  </body>
+</html>
+```
+
+- **Demo**: [https://angry-bartik-1544f6.netlify.app/](https://angry-bartik-1544f6.netlify.app/)
+- **Repo**: [https://github.com/dwhiteGUK/dlw-download-demo](https://github.com/dwhiteGUK/dlw-download-demo)
