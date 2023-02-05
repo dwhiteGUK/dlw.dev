@@ -1,5 +1,6 @@
 import Image from 'next/image';
-import { Heading1, Heading2, Paragraph, aHref, FSImage } from '~/components';
+import { FSImage } from '~/components';
+import { aHref, Heading1, Heading2, Paragraph } from '~/components/typography';
 
 const MdxComponents = {
   FSImage,

@@ -1,11 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter'; // parse front matter
-import renderToString from 'next-mdx-remote/render-to-string'; // Utilities for loading mdx from any remote source as data, rather than as a local import
+import { serialize } from 'next-mdx-remote/serialize'; // Utilities for loading mdx from any remote source as data, rather than as a local import
 import mdxPrism from 'mdx-prism'; // code highlighting/formatting
 import readingTime from 'reading-time';
-
-import { MdxComponents } from '~/components';
 
 const root = process.cwd();
 
@@ -32,17 +30,11 @@ export async function getAllFilesFrontMatter(type) {
   }, []);
 }
 
-
 export async function getFileBySlug(type, slug) {
-  const source = fs.readFileSync(path.join(root, 'src/data', type, `${slug}.mdx`), 'utf8')
+  const source = fs.readFileSync(path.join(root, 'src/data', type, `${slug}.mdx`), 'utf8');
 
   const { data, content } = matter(source);
-  const mdxSource = await renderToString(content, {
-    components: MdxComponents,
-    mdxOptions: {
-      rehypePlugins: [mdxPrism],
-    }
-  });
+  const mdxSource = await serialize(content);
 
   return {
     mdxSource,

@@ -3,13 +3,13 @@ const path = require('path');
 module.exports = {
   webpack: (config, { dev, isServer }) => {
     // extend your webpack configuration here
-    config.resolve.alias['~'] = path.join(__dirname, './src');
+    // config.resolve.alias['~'] = path.join(__dirname, './src');
 
-    if (!isServer) {
-      config.node = {
-        fs: 'empty',
-      };
-    }
+    // if (!isServer) {
+    //   config.node = {
+    //     fs: 'empty',
+    //   };
+    // }
 
     // Replace React with Preact only in client production build
     if (!dev && !isServer) {

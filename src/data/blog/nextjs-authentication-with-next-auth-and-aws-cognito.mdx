@@ -12,105 +12,105 @@ To begin, I removed all uses of the AWS Amplify Auth class. I had intended to do
 
 ## Amazon Cognito
 
-The authentication flow will need an Amazon Cognito user pool.  Follow the steps below to add one if you don't have one already set up: 
+The authentication flow will need an Amazon Cognito user pool. Follow the steps below to add one if you don't have one already set up:
 
-  1. Log into [http://console.aws.amazon.com/](http://console.aws.amazon.com/) and click **Manage User Pools**
+1. Log into [http://console.aws.amazon.com/](http://console.aws.amazon.com/) and click **Manage User Pools**
+
 
     <Image
       src="/images/blog/manage-user-ppol.png"
       alt="Manage user pools screen grab"
       width={627}
       height={233}
-      layout="intrinsic"
       tabIndex="0"
     />
-  
-  2. Click 'Create a user pool', mine is in the top right as I already have user pools set up. 
+
+2. Click 'Create a user pool', mine is in the top right as I already have user pools set up.
+
 
     <Image
       src="/images/blog/create-user-pool.png"
       alt="Create a user pool button screen grab"
       width={355}
       height={103}
-      layout="intrinsic"
       tabIndex="0"
-    />    
-  
-  3. Enter the pool name and select Review Defaults  *-feel free to step through but for this case, we just need to change a few defaults*
+    />
+
+3. Enter the pool name and select Review Defaults _-feel free to step through but for this case, we just need to change a few defaults_
+
 
     <Image
       src="/images/blog/review-defaults.png"
       alt="Review default screen grab"
       width={360}
       height={165}
-      layout="intrinsic"
       tabIndex="0"
-    /> 
-  
-  4. **Important:** select Add app client - this will contain the details required to hook the client up to the authentication service
+    />
+
+4. **Important:** select Add app client - this will contain the details required to hook the client up to the authentication service
+
 
     <Image
       src="/images/blog/add-app-client.png"
       alt="Review default screen grab"
       width={654}
       height={52}
-      layout="intrinsic"
       tabIndex="0"
-    /> 
+    />
 
     And click 'Add an app client'
-  
-  5. Ensure you enter a **App client name** and  **Generate client secret** is checked
-    
+
+5. Ensure you enter a **App client name** and **Generate client secret** is checked
+
+
     <Image
       src="/images/blog/appl-client-settings.png"
       alt="add app client screen grab"
       width={627}
       height={404}
-      layout="intrinsic"
       tabIndex="0"
-    /> 
-  
-  6. Select **Return to pool details**
-  7. Click '**Create pool'**
+    />
+
+6. Select **Return to pool details**
+7. Click '**Create pool'**
+
 
     <Image
       src="/images/blog/create-pool.png"
       alt="Create pool button screen grab"
       width={145}
       height={60}
-      layout="intrinsic"
       tabIndex="0"
-    /> 
-  
-  8. Now we need to setup a domain, select '**Domain name'**  from the left hand menu. 
-    1. Enter a domain name - 
-    2. Check availability 
-    3. Save the domain name as we'll need it later
-    4. Click 'Save changes'
-  
+    />
+
+8. Now we need to setup a domain, select '**Domain name'** from the left hand menu.
+1. Enter a domain name -
+1. Check availability
+1. Save the domain name as we'll need it later
+1. Click 'Save changes'
+
+
     <Image
       src="/images/blog/domain-name-setup.png"
       alt="Domain name setup screen grab"
       width={627}
       height={367}
-      layout="intrinsic"
       tabIndex="0"
-    /> 
-  
-  9. Almost there 😓, select App client settings
-      1. Check **Cognito User Pool**
-      2. Add a Callback URL, for local development that would be     [http://localhost:3000/api/auth/callback/cognito](http://localhost:3000/api/auth/callback/cognito) 
-      3. Check **Authorization code grant** 
-      4. And the following **Allowed oAuth Scopes:** Email, openid and profile
-      5. And **Save changes** 
+    />
+
+9. Almost there 😓, select App client settings
+   1. Check **Cognito User Pool**
+   2. Add a Callback URL, for local development that would be [http://localhost:3000/api/auth/callback/cognito](http://localhost:3000/api/auth/callback/cognito)
+   3. Check **Authorization code grant**
+   4. And the following **Allowed oAuth Scopes:** Email, openid and profile
+   5. And **Save changes**
+
 
     <Image
       src="/images/blog/appl-client-settings.png"
       alt="Enable identity providers screen grab"
       width={627}
       height={451}
-      layout="intrinsic"
       tabIndex="0"
     />
 
@@ -138,15 +138,15 @@ COGNITO_DOMAIN=*Domain name*
 
 Replace with the id, secret and domain we set up previously
 
-These details can be found by logging into  and going to Cognito > Manage user pools 
+These details can be found by logging into and going to Cognito > Manage user pools
 
 ### API Route
 
-As per the [documentation](https://next-auth.js.org/getting-started/example) add a file called `[...nextauth].js` in `pages/api/auth`. 
+As per the [documentation](https://next-auth.js.org/getting-started/example) add a file called `[...nextauth].js` in `pages/api/auth`.
 
 ```jsx
-import NextAuth from 'next-auth'
-import Providers from 'next-auth/providers'
+import NextAuth from 'next-auth';
+import Providers from 'next-auth/providers';
 
 export default NextAuth({
   providers: [
@@ -154,27 +154,27 @@ export default NextAuth({
       clientId: process.env.COGNITO_CLIENT_ID,
       clientSecret: process.env.COGNITO_CLIENT_SECRET,
       domain: process.env.COGNITO_DOMAIN,
-    })
+    }),
   ],
-  debug: process.env.NODE_ENV === 'development' ? true : false
-})
+  debug: process.env.NODE_ENV === 'development' ? true : false,
+});
 ```
 
 We supply NextAuth with a host of providers, which I've added the cognito details. Adding debug for development mode enables various logs in the terminal. Useful if there are any issues and seeing the key-value pairs for the signed-in user.
 
-Now any requests to `api/auth/*` will be handle by NextAuth, for example sign in, sign out etc). 
+Now any requests to `api/auth/*` will be handle by NextAuth, for example sign in, sign out etc).
 
 ### Use NextAuth hook
 
 Inside `pages/index.js` replace all code with the following:
 
 ```jsx
-import Head from 'next/head'
-import Link from 'next/link'
-import { signIn, signOut, useSession } from 'next-auth/client'
+import Head from 'next/head';
+import Link from 'next/link';
+import { signIn, signOut, useSession } from 'next-auth/client';
 
 export default function Home() {
-  const [session, loading] = useSession()
+  const [session, loading] = useSession();
 
   return (
     <div>
@@ -191,25 +191,25 @@ export default function Home() {
               </div>
             </a>
 
-            {!session &&
+            {!session && (
               <>
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                  Example NextAuth Sign In
-                </h2>
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Example NextAuth Sign In</h2>
                 <button
                   type="submit"
                   className="inline-flex items-center justify-center w-1/2 mt-12 rounded-md border border-transparent px-5 py-3 bg-gray-900 text-base font-medium text-white shadow hover:bg-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-rose-500 sm:px-10 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={loading}
-                  onClick={() => signIn('cognito', {
-                    callbackUrl: `${window.location.origin}/protected`
-                  })}
+                  onClick={() =>
+                    signIn('cognito', {
+                      callbackUrl: `${window.location.origin}/protected`,
+                    })
+                  }
                 >
                   Sign In
                 </button>
               </>
-            }
+            )}
 
-            {session &&
+            {session && (
               <>
                 <h1 className="my-6 text-center text-3xl font-extrabold text-gray-900">
                   Welcome, {session.user.name ?? session.user.email}
@@ -223,20 +223,21 @@ export default function Home() {
                   type="submit"
                   className="inline-flex items-center justify-center w-1/2 mt-12 rounded-md border border-transparent px-5 py-3 bg-gray-900 text-base font-medium text-white shadow hover:bg-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-rose-500 sm:px-10 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={loading}
-                  onClick={() => signOut({
-                    callbackUrl: `${window.location.origin}`
-                  })}
+                  onClick={() =>
+                    signOut({
+                      callbackUrl: `${window.location.origin}`,
+                    })
+                  }
                 >
                   Sign Out
                 </button>
               </>
-            }
-
+            )}
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }
 ```
 
@@ -250,7 +251,7 @@ onClick={() => signIn('cognito', {
 
 I've added **cognito** as the first argument which ensures the user is shown the Cognito hosted UI when clicking the sign-in button. The **callbackUrl** will redirect to a protected page
 
-At this point, we can test the sign-up or sign in. Run the development server `yarn run dev` and go to [http://localhost:3000/](http://localhost:3000/). if you select **Sign in** you should be able to log in with an existing account or sign up for a new account. 
+At this point, we can test the sign-up or sign in. Run the development server `yarn run dev` and go to [http://localhost:3000/](http://localhost:3000/). if you select **Sign in** you should be able to log in with an existing account or sign up for a new account.
 
 ### Session Provider
 
@@ -258,29 +259,29 @@ In a multi-page application, we'll want to add the session provider. This ensure
 
 > which improves performance, reduces network traffic and avoids component state changes while rendering -
 
-Update `pages/_app.js` : 
+Update `pages/_app.js` :
 
 ```jsx
-import { Provider } from 'next-auth/client'
-import "tailwindcss/tailwind.css";
+import { Provider } from 'next-auth/client';
+import 'tailwindcss/tailwind.css';
 
 function MyApp({ Component, pageProps }) {
   return (
     <Provider session={pageProps.session}>
       <Component {...pageProps} />
     </Provider>
-  )
+  );
 }
 
-export default MyApp
+export default MyApp;
 ```
 
 Adding the **Provider** import `import { Provider } from 'next-auth/client'` and wrapping the main app component in the **Provider** component:
 
 ```jsx
-    <Provider session={pageProps.session}>
-      <Component {...pageProps} />
-    </Provider>
+<Provider session={pageProps.session}>
+  <Component {...pageProps} />
+</Provider>
 ```
 
 Once logged in you'll be re
@@ -290,12 +291,11 @@ Once logged in you'll be re
 For the protected page, add a new page called `protected.js` inside /pages directory (the actual page name isn't important):
 
 ```jsx
-import Head from 'next/head'
-import Link from 'next/link'
-import { getSession } from 'next-auth/client'
+import Head from 'next/head';
+import Link from 'next/link';
+import { getSession } from 'next-auth/client';
 
 function Protected() {
-
   return (
     <div>
       <Head>
@@ -317,31 +317,37 @@ function Protected() {
               </Link>
             </nav>
             <div className="prose">
-              <p>Faucibus commodo massa rhoncus, volutpat. <strong>Dignissim</strong> sed <strong>eget risus enim</strong>. Mattis mauris semper sed amet vitae sed turpis id. Id dolor praesent donec est. Odio penatibus risus viverra tellus varius sit neque erat velit. Faucibus commodo massa rhoncus, volutpat. Dignissim sed eget risus enim. <a href="#">Mattis mauris semper</a> sed amet vitae sed turpis id.</p>
+              <p>
+                Faucibus commodo massa rhoncus, volutpat. <strong>Dignissim</strong> sed{' '}
+                <strong>eget risus enim</strong>. Mattis mauris semper sed amet vitae sed turpis id. Id dolor praesent
+                donec est. Odio penatibus risus viverra tellus varius sit neque erat velit. Faucibus commodo massa
+                rhoncus, volutpat. Dignissim sed eget risus enim. <a href="#">Mattis mauris semper</a> sed amet vitae
+                sed turpis id.
+              </p>
             </div>
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }
 
-export default Protected
+export default Protected;
 
 export async function getServerSideProps(context) {
   const { res } = context;
-  const session = await getSession(context)
+  const session = await getSession(context);
 
   if (!session) {
     res.writeHead(302, {
-      Location: "/",
+      Location: '/',
     });
     return res.end();
   }
 
   return {
-    props: { session }
-  }
+    props: { session },
+  };
 }
 ```
 

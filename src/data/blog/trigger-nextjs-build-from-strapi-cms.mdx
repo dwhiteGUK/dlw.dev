@@ -24,7 +24,6 @@ Once you have your website set on Vercel, navigate to the project overview and g
   alt="Empty Vercel deploy hook form"
   width={1552}
   height={640}
-  layout="intrinsic"
   tabIndex="0"
 />
 
@@ -35,7 +34,6 @@ Add a hook name and which git branch you want to use. For the demo, I called min
   alt="Filled in Vercel deploy hook form"
   width={1552}
   height={640}
-  layout="intrinsic"
   tabIndex="0"
 />
 
@@ -63,14 +61,7 @@ If successful you'll get a response similar to the following:
 
 Now for the Strapi CMS side. Log into the Strapi Admin and navigate to Setting > Webhooks and click Add new webhook. Fill in the name, URL, and which events you'd like to trigger a re-build of the frontend website.
 
-<FSImage
-  src="/images/blog/strapi-webhook-2.png"
-  alt="Strapi CMS webhook form"
-  width={1552}
-  height={640}
-  layout="intrinsic"
-  tabIndex="0"
-/>
+<FSImage src="/images/blog/strapi-webhook-2.png" alt="Strapi CMS webhook form" width={1552} height={640} tabIndex="0" />
 
 Save the details and then test using the Trigger button at the top. I'd also test by adding or updating some content.
 
