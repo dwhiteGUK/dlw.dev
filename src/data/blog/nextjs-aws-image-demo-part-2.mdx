@@ -126,9 +126,9 @@ resources:
         BucketName: "${opt:stage, self:provider.stage, 'dev'}-${self:custom.upload}"
 ```
 
-The bucket name will be determined by the variables supplied. ${opt:stage, self:provider.stage, 'dev'} is determined by the flags set when deploying, for example, if I run **sls deploy --stage prod** then self:provider.stage is prod, if no flag is supplied then the second parameter is used.
+The bucket name will be determined by the variables supplied. `${opt:stage, self:provider.stage, 'dev'}` is determined by the flags set when deploying, for example, if I run **sls deploy --stage prod** then self:provider.stage is prod, if no flag is supplied then the second parameter is used.
 
-**${self:custom.upload}** is taken from our custom property supplied. For the demo, I don't supply a flag resulting in a bucket name of **dev-blog-nextjs-image-demo**
+`**${self:custom.upload}**` is taken from our custom property supplied. For the demo, I don't supply a flag resulting in a bucket name of **dev-blog-nextjs-image-demo**
 
 That's it for our S3 bucket, to deploy, run the following command:
 

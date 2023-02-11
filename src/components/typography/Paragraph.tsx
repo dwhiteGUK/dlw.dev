@@ -10,13 +10,13 @@ function getProps(props) {
   };
 }
 
-const Paragraph: FC<typographyProps> = (props) => (
-  <p
-    {...getProps({
-      className: 'mt-1 text-base leading-7',
-      ...props,
-    })}
-  />
-);
-
-export default Paragraph;
+export function Paragraph(props) {
+  return (
+    <p
+      {...getProps({
+        className: 'mt-1 text-base leading-7',
+        ...props,
+      })}
+    />
+  );
+}

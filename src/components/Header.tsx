@@ -1,9 +1,8 @@
-import { FC } from 'react';
 import Link from 'next/link';
 
-import { Nav } from '~/components';
+import { Nav } from '~/components/Nav';
 
-const Header: FC = () => {
+export function Header() {
   return (
     <header>
       <div className="flex justify-between">
@@ -18,6 +17,4 @@ const Header: FC = () => {
       </div>
     </header>
   );
-};
-
-export default Header;
+}

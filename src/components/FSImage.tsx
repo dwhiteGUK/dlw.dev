@@ -1,3 +1,4 @@
+'use client';
 import { useCallback, useEffect, useRef, useState, ReactElement } from 'react';
 import Image from 'next/image';
 
@@ -39,7 +40,7 @@ function useFullScreen() {
   return { isFullScreen, toggleFullScreen, fullScreenRef };
 }
 
-function FSImage(props): ReactElement {
+export function FSImage(props): ReactElement {
   const { isFullScreen, toggleFullScreen, fullScreenRef } = useFullScreen();
 
   // eslint-disable-next-line react/prop-types

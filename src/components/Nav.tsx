@@ -1,4 +1,5 @@
-import { FC, useEffect, useState } from 'react';
+'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 import { DarkModeToggle } from '~/components';
@@ -11,7 +12,7 @@ const NavItem = ({ text, link }: { text: string; link: string }) => (
   </li>
 );
 
-const Nav: FC = () => {
+export function Nav() {
   const [mounted, setMounted] = useState(false);
 
   // When mounted on client, now we can show the UI
@@ -25,12 +26,10 @@ const Nav: FC = () => {
         <NavItem text="Home" link="/" />
         {/* <NavItem text="Work" link="/work" /> */}
         <NavItem text="Blog" link="/blog" />
-        <li>
+        {/* <li>
           <DarkModeToggle />
-        </li>
+        </li> */}
       </ul>
     </nav>
   );
-};
-
-export default Nav;
+}

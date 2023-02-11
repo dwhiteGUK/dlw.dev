@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-import { Heading3, Paragraph, MoreLink } from '~/components';
+import { MoreLink } from '~/components/MoreLink';
+import { Heading3 } from '~/components/typography/Heading3';
+import { Paragraph } from '~/components/typography/Paragraph';
 import { useRelativeTime } from '~/hooks';
 
 type Post = {
@@ -10,7 +12,7 @@ type Post = {
   timestamp: number;
 };
 
-const BlogItem = ({ post }: { post: Post }) => {
+export function BlogItem({ post }: { post: Post }) {
   const { title, timestamp, slug, snippet } = post;
   const relativeTime = useRelativeTime(timestamp);
 
@@ -28,6 +30,4 @@ const BlogItem = ({ post }: { post: Post }) => {
       </div>
     </div>
   );
-};
-
-export default BlogItem;
+}

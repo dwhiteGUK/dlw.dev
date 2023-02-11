@@ -10,13 +10,13 @@ function getProps(props) {
   };
 }
 
-const Heading2: FC<typographyProps> = (props) => (
-  <h2
-    {...getProps({
-      className: 'text-2xl leading-9 tracking-tight font-extrabold sm:text-4xl sm:leading-10',
-      ...props,
-    })}
-  />
-);
-
-export default Heading2;
+export function Heading2(props) {
+  return (
+    <h2
+      {...getProps({
+        className: 'text-2xl leading-9 tracking-tight font-extrabold sm:text-4xl sm:leading-10',
+        ...props,
+      })}
+    />
+  );
+}
