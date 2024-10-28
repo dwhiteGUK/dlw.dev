@@ -44,7 +44,7 @@
     "next-mdx-remote": "4.3",
     "next-seo": "5.15",
     "next-themes": "^0.2.1",
-    "postcss": "^8.2.0",
+    "postcss": "^8.4.47",
     "postcss-import": "15.1",
     "preact": "^10.5.12",
     "react": "18.3.1",
