@@ -24,7 +24,7 @@
     "typescript": "^4.0.5"
   },
   "dependencies": {
-    "@mapbox/rehype-prism": "^0.8.0",
+    "@mapbox/rehype-prism": "^0.9.0",
     "@mdx-js/loader": "^2.2.1",
     "@mdx-js/react": "^2.2.1",
     "@next/mdx": "^13.5.7",
