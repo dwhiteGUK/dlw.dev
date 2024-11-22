@@ -36,7 +36,7 @@
     "autoprefixer": "^10.4.20",
     "cookie": "^0.5.0",
     "gray-matter": "^4.0.2",
-    "js-cookie": "^3.0.1",
+    "js-cookie": "^3.0.5",
     "mdx-prism": "^0.3.1",
     "next": "^13.1.6",
     "next-compose-plugins": "^2.2.1",
